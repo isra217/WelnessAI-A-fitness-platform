@@ -1,0 +1,3044 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Firebase (compat v9) -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
+  <!-- SweetAlert2 for beautiful popups -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <!-- jsPDF library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- jsPDF AutoTable plugin -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    :root {
+      --sidebar-primary: #7fa6ce;
+      --sidebar-primary-dark: #846bbd;
+      --sidebar-gradient: linear-gradient(180deg, var(--sidebar-primary) 10%, var(--sidebar-primary-dark) 100%);
+      --accent-1: #e2707f;
+      --accent-1-dark: #00bad3;
+      --accent-2: #27ae60;
+      --success: #4CAF50;
+      --warning: #f39c12;
+      --danger: #e74c3c;
+      --light: #f5f7fa;
+      --dark: #2c3e50;
+      --gray: #95a5a6;
+      --border: #dfe6e9;
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, .08);
+      --sidebar-width: 280px;
+      --expert-card-bg: #ffffff;
+      --expert-card-border: #e3e6f0;
+      --main-bg: #ecf0f1;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: var(--main-bg);
+      color: var(--dark);
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar - New Color Theme */
+    .sidebar {
+      position: fixed;
+      width: 250px;
+
+      /* full viewport height */
+      width: var(--sidebar-width);
+      background: var(--sidebar-gradient);
+      color: #fff;
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, .08);
+      z-index: 10;
+      transition: width 0.3s ease;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      padding: 0 20px 20px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, .12);
+    }
+
+    .logo i {
+      font-size: 28px;
+      margin-right: 12px;
+    }
+
+    .logo h1 {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .user-info {
+      text-align: center;
+      margin-bottom: 26px;
+      padding: 0 20px;
+    }
+
+    .profile-picture {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      margin: 0 auto 12px;
+      background: linear-gradient(45deg, var(--accent-1), var(--accent-1-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      color: #fff;
+      border: 3px solid rgba(255, 255, 255, .25);
+      background-size: cover;
+      background-position: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .user-info h3 {
+      font-weight: 600;
+    }
+
+    .user-info p {
+      color: rgba(255, 255, 255, .85);
+      font-size: 13px;
+    }
+
+    .menu {
+      flex: 1;
+      padding: 0 10px;
+      overflow-y: auto;
+    }
+
+    .scrollable {
+      max-height: 100vh;
+      /* sidebar won’t exceed screen height */
+      overflow-y: auto;
+      /* show scrollbar if content overflows */
+    }
+
+    /* Custom scrollbar styling */
+    #sidebar::-webkit-scrollbar {
+      width: 8px;
+      /* slim scrollbar */
+    }
+
+    #sidebar::-webkit-scrollbar-track {
+      background: transparent;
+      /* same as your sidebar background */
+    }
+
+    #sidebar::-webkit-scrollbar-thumb {
+      background-color: rgba(255, 255, 255, 0.5);
+      /* semi-transparent white thumb */
+      border-radius: 10px;
+    }
+
+    #sidebar::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(255, 255, 255, 0.8);
+      /* brighter on hover */
+      /* lighter shade on hover */
+    }
+
+    /* For Firefox */
+    #sidebar {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.5) transparent;
+      /* thumb, track */
+    }
+
+
+    .menu-item {
+
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      margin: 6px 0;
+      border-radius: 10px;
+      cursor: pointer;
+      color: rgba(255, 255, 255, .95);
+      transition: .25s;
+    }
+
+    .menu-item:hover {
+      background: rgba(255, 255, 255, .12);
+    }
+
+    .menu-item.active {
+      background: rgba(255, 255, 255, .18);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, .12);
+    }
+
+    .menu-item i {
+      width: 24px;
+      text-align: center;
+      font-size: 18px;
+      margin-right: 10px;
+    }
+
+    .menu-item span {
+      font-weight: 500;
+    }
+
+    /* Main */
+    .main-content {
+      flex: 1;
+      margin-left: 250px;
+      padding: 30px 45px;
+      overflow-y: auto;
+      background: var(--main-bg);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header h2 {
+      font-weight: 700;
+      font-size: 26px;
+      color: var(--dark);
+    }
+
+    /* Notification buttons */
+    .notification-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .btn-notification {
+      padding: 10px 12px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--dark);
+      cursor: pointer;
+      margin-left: 8px;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .btn-notification:hover {
+      background: #f8f9fc;
+      color: var(--accent-1);
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: var(--danger);
+      color: white;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .notification-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      width: 320px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      z-index: 100;
+      padding: 15px;
+      display: none;
+      margin-top: 10px;
+    }
+
+    .notification-dropdown.show {
+      display: block;
+    }
+
+    .notification-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 10px;
+    }
+
+    .notification-item {
+      padding: 10px 0;
+      border-bottom: 1px solid #f1f1f1;
+      font-size: 14px;
+    }
+
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+
+    .notification-time {
+      font-size: 12px;
+      color: var(--gray);
+    }
+
+    /* Search and filter section */
+    .filters-container {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .search-bar {
+      display: flex;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
+    .search-input {
+      flex: 1;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-right: 0;
+      border-radius: 10px 0 0 10px;
+      font-size: 15px;
+      background: #fff;
+    }
+
+    .search-btn {
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 0 10px 10px 0;
+      background: var(--accent-1);
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .search-btn:hover {
+      background: var(--accent-1-dark);
+    }
+
+    .filter-options {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      min-width: 150px;
+    }
+
+    .filter-group label {
+      font-size: 14px;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .filter-select {
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
+    }
+
+    /* Cards */
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 22px;
+    }
+
+    .card-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-header h3 {
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    .card-body {
+      padding: 18px 20px;
+    }
+
+    /* Expert cards - New Design */
+    .experts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 18px;
+      margin-top: 12px;
+    }
+
+    .expert-card {
+      background: var(--expert-card-bg);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      transition: .25s;
+      border: 1px solid var(--expert-card-border);
+    }
+
+    .expert-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 18px rgba(0, 0, 0, .12);
+    }
+
+    .expert-img {
+      height: 170px;
+      background: var(--accent-1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 56px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .expert-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .expert-info {
+      padding: 16px 18px;
+    }
+
+    .expert-name {
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--dark);
+    }
+
+    .expert-role {
+      display: inline-block;
+      background: var(--accent-2);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .expert-specialization {
+      color: var(--accent-1);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .expert-details {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0 12px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .expert-rating {
+      color: #f1c40f;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 0;
+      cursor: pointer;
+      font-weight: 600;
+      transition: .2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn i {
+      margin-right: 8px;
+    }
+
+    .btn-primary {
+      background: var(--accent-1);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-1-dark);
+    }
+
+    .btn-light {
+      background: #fff;
+      border: 1px solid var(--border);
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      background: #fff;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent-1);
+      box-shadow: 0 0 0 3px rgba(230, 126, 34, .18);
+    }
+
+    .row {
+      display: flex;
+      margin: 0 -8px;
+    }
+
+    .col {
+      flex: 1;
+      padding: 0 8px;
+    }
+
+    /* Sections */
+    .content-section {
+      display: none;
+    }
+
+    .content-section.active {
+      display: block;
+    }
+
+    /* AI Exercise Selector */
+    .exercise-selector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 15px;
+    }
+
+    .arrow-btn {
+      background: #007bff;
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background 0.3s ease;
+    }
+
+    .arrow-btn:hover {
+      background: #0056b3;
+    }
+
+    .exercise-display {
+      width: 200px;
+      text-align: center;
+      margin: 0 20px;
+    }
+
+    .exercise-item {
+      display: none;
+    }
+
+    .exercise-item.active {
+      display: block;
+    }
+
+    .exercise-item p {
+      margin-top: 8px;
+      font-weight: bold;
+    }
+
+    /* Popup Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 25px;
+      border-radius: 15px;
+      text-align: center;
+      width: 400px;
+      position: relative;
+      box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+
+    .rep-counter h3 {
+      margin: 15px 0;
+      font-size: 22px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 15px;
+      background: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    #progressFill {
+      height: 100%;
+      width: 0%;
+      background: #28a745;
+      transition: width 0.4s ease;
+    }
+
+    .feedback-box {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      font-size: 16px;
+      font-style: italic;
+      color: #333;
+    }
+
+
+    /* AI Exercise specific styles */
+    .exercise-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .exercise-option {
+      background: white;
+      border-radius: 12px;
+      padding: 25px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border: 2px solid transparent;
+    }
+
+    .exercise-option:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+      border-color: var(--accent-1);
+    }
+
+    .exercise-option.active {
+      border-color: var(--accent-1);
+      background: rgba(226, 112, 127, 0.05);
+    }
+
+    .exercise-icon {
+      width: 80px;
+      height: 80px;
+      background: var(--sidebar-gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 15px;
+      font-size: 36px;
+      color: white;
+    }
+
+    .exercise-option h4 {
+      margin-bottom: 8px;
+      color: var(--dark);
+      font-size: 18px;
+    }
+
+    .exercise-option p {
+      color: var(--gray);
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+
+    .start-btn-container {
+      margin-top: 30px;
+      text-align: center;
+      display: none;
+    }
+
+    /* Rep display */
+    .rep-display {
+      text-align: center;
+      margin: 20px 0;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+
+    .rep-display h2 {
+      font-size: 42px;
+      color: var(--accent-1);
+      margin: 0;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .exercise-options {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-content>div {
+        flex-direction: column;
+      }
+    }
+
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      box-shadow: var(--card-shadow);
+    }
+
+    .stat-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      font-size: 22px;
+      background: rgba(39, 174, 96, .12);
+      color: var(--accent-2);
+    }
+
+    .stat-info h3 {
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    /* Toggle switches for settings */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #cfcfcf;
+      transition: .4s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 4px;
+      bottom: 4px;
+      background: #fff;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked+.slider {
+      background: var(--accent-1);
+    }
+
+    input:checked+.slider:before {
+      transform: translateX(26px);
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .sidebar {
+        width: 84px;
+        overflow: hidden;
+      }
+
+      .logo h1,
+      .user-info,
+      .menu-item span {
+        display: none;
+      }
+
+      .logo {
+        justify-content: center;
+      }
+
+      .menu-item {
+        justify-content: center;
+      }
+
+      .menu-item i {
+        margin-right: 0;
+        font-size: 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 10px;
+      }
+
+      .logo {
+        padding: 10px;
+      }
+
+      .user-info {
+        display: none;
+      }
+
+      .menu {
+        display: flex;
+        overflow-x: auto;
+        padding: 8px 0;
+      }
+
+      .menu-item {
+        flex-direction: column;
+        padding: 10px;
+        margin: 0 6px;
+      }
+
+      .menu-item i {
+        margin-bottom: 4px;
+      }
+
+      .main-content {
+        padding: 16px;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .row {
+        flex-direction: column;
+      }
+
+      .filter-options {
+        flex-direction: column;
+      }
+
+      .notification-dropdown {
+        width: 100%;
+        right: 0;
+        left: 0;
+      }
+    }
+
+    /* Collapsible sidebar styles */
+    .sidebar-toggle {
+      display: none;
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 1000;
+      background: var(--accent-1);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (max-width: 992px) {
+      .sidebar-toggle {
+        display: flex;
+      }
+
+      .sidebar {
+        position: fixed;
+        left: -280px;
+        transition: left 0.3s ease;
+      }
+
+      .sidebar.open {
+        left: 0;
+      }
+    }
+
+    /* Workout Plan Table Styles */
+    .workout-table-container {
+      margin-top: 30px;
+      overflow-x: auto;
+    }
+
+    .workout-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .workout-table th {
+      background: var(--primary);
+      color: white;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .workout-table td {
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .workout-table tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    .workout-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .workout-table tr:hover {
+      background-color: #e9ecef;
+    }
+
+    .day-header {
+      background: var(--secondary) !important;
+      color: white;
+      font-size: 1.1rem;
+    }
+
+    .exercise-name {
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    .exercise-detail {
+      font-size: 0.9rem;
+      color: var(--gray);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      font-size: 1.2rem;
+      color: var(--primary);
+    }
+
+    .loading i {
+      animation: spin 1s linear infinite;
+      display: block;
+      font-size: 2rem;
+      margin-bottom: 15px;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .workout-table {
+        min-width: 600px;
+      }
+
+      header h1 {
+        font-size: 2rem;
+      }
+    }
+
+    /* Health stats simulation */
+    .health-simulation {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .health-metric {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: var(--card-shadow);
+    }
+
+    .health-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--accent-1);
+      margin: 10px 0;
+    }
+
+    .health-label {
+      font-size: 14px;
+      color: var(--gray);
+    }
+  </style>
+</head>
+
+<body>
+  <button class="sidebar-toggle" id="sidebarToggle">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="logo">
+        <i class="fas fa-dumbbell"></i>
+        <h1>FitAI</h1>
+      </div>
+      <div class="user-info">
+        <div class="profile-picture" id="sidebarAvatar"><i class="fas fa-user"></i></div>
+        <h3 id="sidebarName">User Name</h3>
+        <p>Member</p>
+      </div>
+
+      <div class="menu">
+        <div class="menu-item active" data-section="home"><i class="fas fa-home"></i><span>Home</span></div>
+        <div class="menu-item" data-section="profile"><i class="fas fa-user"></i><span>Profile</span></div>
+        <div class="menu-item" data-section="health"><i class="fas fa-heart"></i><span>Health & Stats</span></div>
+        <div class="menu-item" data-section="workout"><i class="fas fa-dumbbell"></i><span>Workout Plan</span></div>
+        <div class="menu-item" data-section="diet"><i class="fas fa-utensils"></i><span>Diet Plan</span></div>
+        <div class="menu-item" data-section="excercise"><i class="fas fa-robot"></i><span>AI Excercise</span></div>
+        <div class="menu-item" data-section="payment"><i class="fas fa-credit-card"></i><span>Payment</span></div>
+        <div class="menu-item" data-section="complaint"><i class="fas fa-comment"></i><span>Complaint Box</span></div>
+        <div class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main-content">
+      <div class="header">
+        <h2 id="mainHeader">Expert Profiles</h2>
+        <div>
+          <div class="notification-wrapper">
+            <button class="btn-notification" id="notificationBtn">
+              <i class="fas fa-bell"></i>
+              <span class="notification-badge" id="notificationCount">0</span>
+            </button>
+            <div class="notification-dropdown" id="notificationDropdown">
+              <div class="notification-header">
+                <h4>Notifications</h4>
+                <button class="btn-light" style="padding: 4px 8px; font-size: 12px;">Clear All</button>
+              </div>
+              <div id="notificationList">
+                <!-- Notifications will be populated here -->
+              </div>
+            </div>
+          </div>
+          <button class="btn-notification"><i class="fas fa-envelope"></i></button>
+        </div>
+      </div>
+
+      <!-- Home (Approved Experts) -->
+      <div class="content-section active" id="home-section">
+        <div class="filters-container">
+          <div class="search-bar">
+            <input id="expertSearch" class="search-input" type="text"
+              placeholder="Search experts by name, specialization, or rating...">
+            <button id="searchBtn" class="search-btn"><i class="fas fa-search"></i> Search</button>
+          </div>
+
+          <div class="filter-options">
+            <div class="filter-group">
+              <label for="priceFilter">Price Range</label>
+              <select id="priceFilter" class="filter-select">
+                <option value="">Any Price</option>
+                <option value="low">Under $50/hr</option>
+                <option value="medium">$50 - $100/hr</option>
+                <option value="high">Over $100/hr</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="ratingFilter">Minimum Rating</label>
+              <select id="ratingFilter" class="filter-select">
+                <option value="">Any Rating</option>
+                <option value="5">5 Stars</option>
+                <option value="4">4+ Stars</option>
+                <option value="3">3+ Stars</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="specialtyFilter">Specialty</label>
+              <select id="specialtyFilter" class="filter-select">
+                <option value="">All Specialties</option>
+                <option value="physiotherapist">Physiotherapist</option>
+                <option value="dietician">Dietician</option>
+                <option value="trainer">Personal Trainer</option>
+                <option value="yoga">Yoga Instructor</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label style="opacity: 0;">Filter</label>
+              <button id="applyFilters" class="btn btn-primary" style="padding: 8px 15px;">Apply Filters</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="experts-grid" id="expertsGrid">
+          <!-- Filled by JS from Firestore -->
+        </div>
+      </div>
+
+      <!-- Profile -->
+      <div class="content-section" id="profile-section">
+        <div class="card">
+          <div class="card-header">
+            <h3>Your Profile</h3>
+          </div>
+          <div class="card-body">
+            <form id="profileForm">
+              <div class="row">
+                <div class="col">
+                  <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" class="form-control" placeholder="John Doe">
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="form-group">
+                    <label for="age">Age</label>
+                    <input type="number" id="age" class="form-control" placeholder="28">
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col">
+                  <div class="form-group">
+                    <label for="gender">Gender</label>
+                    <select id="gender" class="form-control">
+                      <option value="">Select Gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" class="form-control" placeholder="+92 3xx xxxxxxx">
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col">
+                  <div class="form-group">
+                    <label for="height">Height (cm)</label>
+                    <input type="number" id="height" class="form-control" placeholder="175">
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="form-group">
+                    <label for="weight">Weight (kg)</label>
+                    <input type="number" id="weight" class="form-control" placeholder="70">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="healthHistory">Health History (Optional)</label>
+                <textarea id="healthHistory" class="form-control" rows="4"
+                  placeholder="Any conditions, allergies, injuries..."></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Health & Stats -->
+      <div class="content-section" id="health-section">
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-weight-scale"></i></div>
+            <div class="stat-info">
+              <h3 id="statWeight">– kg</h3>
+              <p>Current Weight</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-ruler-vertical"></i></div>
+            <div class="stat-info">
+              <h3 id="statHeight">– cm</h3>
+              <p>Height</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-calculator"></i></div>
+            <div class="stat-info">
+              <h3 id="statBMI">–</h3>
+              <p>BMI</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Health Progress</h3>
+          </div>
+          <div class="card-body">
+            <p>Your health statistics will be displayed here as you track your progress.</p>
+
+            <div class="health-simulation">
+              <div class="health-metric">
+                <i class="fas fa-heartbeat" style="font-size: 24px; color: var(--accent-1);"></i>
+                <div class="health-value" id="heartRate">72</div>
+                <div class="health-label">Heart Rate (bpm)</div>
+              </div>
+              <div class="health-metric">
+                <i class="fas fa-walking" style="font-size: 24px; color: var(--accent-2);"></i>
+                <div class="health-value" id="steps">8,542</div>
+                <div class="health-label">Steps Today</div>
+              </div>
+              <div class="health-metric">
+                <i class="fas fa-fire" style="font-size: 24px; color: var(--danger);"></i>
+                <div class="health-value" id="calories">324</div>
+                <div class="health-label">Calories Burned</div>
+              </div>
+              <div class="health-metric">
+                <i class="fas fa-bed" style="font-size: 24px; color: var(--sidebar-primary);"></i>
+                <div class="health-value" id="sleep">7.2</div>
+                <div class="health-label">Sleep (hours)</div>
+              </div>
+            </div>
+
+            <div
+              style="height: 200px; background: #f5f5f5; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-top: 20px;">
+              <p style="color: #888;">(Health progress chart will appear here)</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Workout Plan -->
+      <div class="content-section" id="workout-section">
+        <div class="card">
+          <div class="card-header">
+            <h3>Your Workout Plan</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col">
+                <div class="form-group">
+                  <label for="goal">Goal</label>
+                  <select id="goal" class="form-control">
+                    <option value="general">General Fitness</option>
+                    <option value="weight_loss">Weight Loss</option>
+                    <option value="muscle_gain">Muscle Gain</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col">
+                <div class="form-group">
+                  <label for="experience">Experience</label>
+                  <select id="experience" class="form-control">
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <button id="genWorkoutBtn" class="btn btn-primary"><i class="fas fa-bolt"></i> Generate Workout
+              Plan</button>
+
+            <div id="workoutPlan" class="workout-table-container">
+              <!-- workout tables will appear here -->
+            </div>
+
+
+            <div id="downloadWorkout" style="display: none; margin-top: 20px;">
+              <button class="btn btn-primary" id="downloadWorkoutBtn">
+                <i class="fas fa-download"></i> Download as PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Diet Plan -->
+      <div class="content-section" id="diet-section">
+        <div class="card">
+          <div class="card-header">
+            <h3>Your Diet Plan</h3>
+          </div>
+
+          <div class="card-body">
+            <div class="row">
+              <div class="col">
+                <div class="form-group">
+                  <label for="dietCalories">Target Calories (kcal)</label>
+                  <input id="dietCalories" type="number" class="form-control" placeholder="e.g., 2200">
+                </div>
+              </div>
+
+              <div class="col">
+                <div class="form-group">
+                  <label for="foodItem">Preferred Foods</label>
+                  <input id="foodItem" type="text" class="form-control" placeholder="e.g., chicken, rice, apple">
+                </div>
+              </div>
+
+              <div class="col">
+                <div class="form-group">
+                  <label for="allergies">Allergies/Dietary Restrictions</label>
+                  <input id="allergies" type="text" class="form-control" placeholder="e.g., nuts, dairy, gluten">
+                </div>
+              </div>
+            </div>
+
+            <button id="genDietBtn" class="btn btn-primary" style="margin-top: 10px;">
+              <i class="fas fa-seedling"></i> Generate Diet Plan
+            </button>
+
+            <div id="dietPlan" style="margin-top:16px;"></div>
+
+            <div id="downloadDiet" style="display: none; margin-top: 20px;">
+              <button class="btn btn-primary" id="downloadDietBtn">
+                <i class="fas fa-download"></i> Download as PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Exercise Section -->
+      <!-- AI Exercise Section -->
+      <div class="content-section" id="excercise-section">
+        <div class="card">
+          <div class="card-header">
+            <h3>AI Exercise Guide</h3>
+          </div>
+          <div class="card-body">
+            <div class="exercise-options">
+              <div class="exercise-option" data-exercise="Bicep_curl">
+                <div class="exercise-icon"><i class="fas fa-dumbbell"></i></div>
+                <h4>Bicep Curl</h4>
+                <p>Arm strength exercise</p>
+              </div>
+
+              <div class="exercise-option" data-exercise="front_raise">
+                <div class="exercise-icon"><i class="fas fa-arrow-up"></i></div>
+                <h4>Front Raise</h4>
+                <p>Shoulder development</p>
+              </div>
+
+              <div class="exercise-option" data-exercise="shoulder_press">
+                <div class="exercise-icon"><i class="fas fa-hands-helping"></i></div>
+                <h4>Shoulder Press</h4>
+                <p>Upper body strength</p>
+              </div>
+            </div>
+
+            <div class="start-btn-container" id="start-btn-container">
+              <button id="start-exercise" class="btn btn-primary" style="padding: 15px 30px; font-size: 18px;">
+                <i class="fas fa-play-circle"></i> Start Exercise
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Exercise Modal -->
+      <div class="modal" id="exercise-modal">
+        <div class="modal-content" style="max-width: 500px;">
+          <span class="close-btn" id="close-modal">&times;</span>
+
+          <div class="rep-counter">
+            <h3 id="exercise-modal-title">Exercise</h3>
+
+            <div class="rep-display">
+              <h2 id="rep-count">0</h2>
+              <p>Reps Completed</p>
+            </div>
+
+            <div class="progress-container" style="margin-top: 20px;">
+              <div class="progress-bar">
+                <div id="progressFill" style="width: 0%;"></div>
+              </div>
+              <p id="progress-text" style="text-align: center; margin-top: 5px;">0/10</p>
+            </div>
+
+            <div class="feedback-box" id="exercise-feedback">
+              Get ready to start your exercise!
+            </div>
+
+            <div style="margin-top: 20px; text-align: center;">
+              <button id="stop-exercise" class="btn btn-primary">
+                <i class="fas fa-stop-circle"></i> Stop Exercise
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Stripe Payment Form -->
+      <div class="content-section" id="payment-section"
+        style="max-width:500px; margin:50px auto; font-family:sans-serif;">
+        <div class="card" style="padding:25px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+          <div class="card-header" style="margin-bottom:20px;">
+            <h3 style="margin:0; text-align:center;">Appointment Payment</h3>
+          </div>
+
+          <form id="stripePaymentForm">
+            <!-- Amount -->
+            <div class="form-group" style="margin-bottom:20px; display:flex; align-items:center;">
+              <label style="flex:none; margin-right:10px;">Amount:</label>
+              <div style="flex:1; position:relative;">
+                <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#555;">$</span>
+                <input type="number" id="amount" placeholder="0.00"
+                  style="padding:10px 10px 10px 25px; width:100%; border-radius:8px; border:1px solid #dbe5f0; font-size:16px;">
+              </div>
+            </div>
+
+            <!-- Card Number & Expiry in one row -->
+            <div class="form-row" style="display:flex; gap:10px; margin-bottom:15px;">
+              <div style="flex:2;">
+                <label>Card Number</label>
+                <div id="card-number" style="padding:10px; border:1px solid #dbe5f0; border-radius:8px;">
+                </div>
+              </div>
+              <div style="flex:1;">
+                <label>Expiry</label>
+                <div id="card-expiry" style="padding:10px; border:1px solid #dbe5f0; border-radius:8px;"></div>
+              </div>
+            </div>
+
+            <!-- CVC & ZIP in one row -->
+            <div class="form-row" style="display:flex; gap:10px; margin-bottom:20px;">
+              <div style="flex:1;">
+                <label>CVC</label>
+                <div id="card-cvc" style="padding:10px; border:1px solid #dbe5f0; border-radius:8px;"></div>
+              </div>
+              <div style="flex:1;">
+                <label>ZIP</label>
+                <div id="postal-code" style="padding:10px; border:1px solid #dbe5f0; border-radius:8px;"></div>
+              </div>
+            </div>
+
+            <button id="payButton"
+              style="width:100%; padding:12px; background:#635bff; color:#fff; border:none; border-radius:8px; font-size:16px; cursor:pointer;">
+              <i class="fas fa-credit-card"></i> Pay Now
+            </button>
+          </form>
+
+          <div id="paymentStatus" style="margin-top:20px; display:none;"></div>
+        </div>
+      </div>
+
+
+
+
+
+
+
+
+
+      <!-- Complaint Box -->
+
+      <div class="content-section" id="complaint-section">
+        <div class="card">
+          <div class="card-header">
+            <h3>Complaint Box</h3>
+          </div>
+          <div class="card-body">
+            <form id="complaintForm">
+
+              <div class="form-group">
+                <label for="complaintUserName">User Name</label>
+                <input type="text" id="complaintUserName" class="form-control" placeholder="Enter your name">
+              </div>
+
+              <div class="form-group">
+                <label for="complaintTitle">Title</label>
+                <input type="text" id="complaintTitle" class="form-control" placeholder="Brief title of your complaint">
+              </div>
+
+              <div class="form-group">
+                <label for="complaintCategory">Category</label>
+                <select id="complaintCategory" class="form-control">
+                  <option value="">Select Category</option>
+                  <option value="service">Service Quality</option>
+                  <option value="expert">Expert Related</option>
+                  <option value="technical">Technical Issue</option>
+                  <option value="billing">Billing/Payment</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="complaintDescription">Description</label>
+                <textarea id="complaintDescription" class="form-control" rows="5"
+                  placeholder="Describe your complaint in detail..."></textarea>
+              </div>
+
+              <div class="form-group">
+                <div class="form-check">
+                  <input type="checkbox" id="urgentComplaint" class="form-check-input">
+                  <label for="urgentComplaint" class="form-check-label">Mark as urgent</label>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary">Submit Complaint to Admin</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /container -->
+
+  <!-- Appointment Booking Modal -->
+  <div class="modal" id="bookingModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Book Appointment</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="bookingForm">
+          <div class="form-group">
+            <label for="appointmentDate">Date</label>
+            <input type="date" id="appointmentDate" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="appointmentTime">Time</label>
+            <input type="time" id="appointmentTime" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="appointmentNotes">Notes (Optional)</label>
+            <textarea id="appointmentNotes" class="form-control" rows="3"
+              placeholder="Any specific requirements or concerns..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Request Appointment</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Firebase + App Script -->
+  <script type="module">
+
+    /*======= Firebase v10 Modular ========= */
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, addDoc, collection, query, orderBy,
+      limit, where, getDocs, onSnapshot, serverTimestamp, updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // Firebase config (replace with your config)
+    const firebaseConfig = {
+      apiKey: "AIzaSyApOX9p61po8QoEy07TFXuYTnmhUfJYgPU",
+      authDomain: "fyp-7221e.firebaseapp.com",
+      projectId: "fyp-7221e",
+      storageBucket: "fyp-7221e.firebasestorage.app",
+      messagingSenderId: "366694776039",
+      appId: "1:366694776039:web:e8aeb0c34c3e27ce1a7642"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    /* ========= UI refs ========= */
+    const menuItems = document.querySelectorAll('.menu-item[data-section]');
+    const contentSections = document.querySelectorAll('.content-section');
+    const mainHeader = document.getElementById('mainHeader');
+    const sidebarName = document.getElementById('sidebarName');
+    const sidebarAvatar = document.getElementById('sidebarAvatar');
+    const expertsGrid = document.getElementById('expertsGrid');
+    const expertSearch = document.getElementById('expertSearch');
+    const searchBtn = document.getElementById('searchBtn');
+    const priceFilter = document.getElementById('priceFilter');
+    const ratingFilter = document.getElementById('ratingFilter');
+    const specialtyFilter = document.getElementById('specialtyFilter');
+    const applyFiltersBtn = document.getElementById('applyFilters');
+    const statWeight = document.getElementById('statWeight');
+    const statHeight = document.getElementById('statHeight');
+    const statBMI = document.getElementById('statBMI');
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationDropdown = document.getElementById('notificationDropdown');
+    const notificationCount = document.getElementById('notificationCount');
+    const notificationList = document.getElementById('notificationList');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const bookingModal = document.getElementById('bookingModal');
+    const paymentModal = document.getElementById('paymentModal');
+    const closeModalButtons = document.querySelectorAll('.close-modal');
+    const bookingForm = document.getElementById('bookingForm');
+    const jazzcashPayment = document.getElementById('jazzcashPayment');
+    const paymentSuccess = document.getElementById('paymentSuccess');
+    const paymentDetails = document.getElementById('paymentDetails');
+    const zoomLink = document.getElementById('zoomLink');
+    const paymentForm = document.getElementById('paymentForm');
+    const generateOrderIdBtn = document.getElementById('generateOrderId');
+    const orderIdInput = document.getElementById('orderId');
+    const paymentStatus = document.getElementById('paymentStatus');
+
+    /* ========= State ========= */
+    let currentUser = null;
+    let approvedExperts = [];
+
+    let selectedExpertId = null;
+
+    let healthInterval = null;
+
+    /* ========= Auth Guard & Initial Load ========= */
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        alert("Please login first.");
+        window.location.href = "login.html";
+        return;
+      }
+      currentUser = user;
+      await loadUserProfile();
+      await loadApprovedExperts();
+      setupNotificationsListener();
+
+    });
+
+    /* ========= Sidebar navigation ========= */
+    menuItems.forEach(item => {
+      item.addEventListener('click', function () {
+        const target = this.dataset.section;
+        menuItems.forEach(mi => mi.classList.remove('active'));
+        this.classList.add('active');
+
+        mainHeader.textContent = this.querySelector('span').textContent;
+        contentSections.forEach(section => {
+          section.classList.remove('active');
+          if (section.id === `${target}-section`) section.classList.add('active');
+        });
+
+        // Close sidebar on mobile after selection
+        if (window.innerWidth <= 992) {
+          sidebar.classList.remove('open');
+        }
+      });
+    });
+
+
+    // Toggle sidebar on mobile
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+
+    // Close modals
+    closeModalButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        bookingModal.style.display = 'none';
+        paymentModal.style.display = 'none';
+      });
+    });
+
+    // Close modals when clicking outside
+    window.addEventListener('click', (e) => {
+      if (e.target === bookingModal) bookingModal.style.display = 'none';
+      if (e.target === paymentModal) paymentModal.style.display = 'none';
+    });
+
+    // Notification dropdown toggle
+    notificationBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      notificationDropdown.classList.toggle('show');
+    });
+
+    // Close notification dropdown when clicking elsewhere
+    document.addEventListener('click', function (e) {
+      if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+        notificationDropdown.classList.remove('show');
+      }
+    });
+    document.addEventListener("DOMContentLoaded", () => {
+      const sidebar = document.getElementById("sidebar");
+
+      // Add scroll class dynamically
+      sidebar.classList.add("scrollable");
+    });
+
+
+    /* ========= Load User Profile to sidebar + profile form ========= */
+    async function loadUserProfile() {
+      try {
+        const userRef = doc(db, 'profile', currentUser.uid); //  use "profile" collection
+        const snap = await getDoc(userRef);
+        if (snap.exists()) {
+          const data = snap.data();
+
+          // Sidebar update
+          sidebarName.textContent = data.name || "User"; //  show full name
+          if (data.profilePic) {
+            sidebarAvatar.style.backgroundImage = `url(${data.profilePic})`;
+            sidebarAvatar.innerHTML = ""; // remove default icon
+          }
+
+          // Prefill profile form with saved data
+          document.getElementById('fullName').value = data.name || "";
+          document.getElementById('age').value = data.age || "";
+          document.getElementById('gender').value = data.gender || "";
+          document.getElementById('phone').value = data.phone || "";
+          document.getElementById('height').value = data.height || "";
+          document.getElementById('weight').value = data.weight || "";
+          document.getElementById('healthHistory').value = data.healthHistory || "";
+
+          // Health stats quick fill
+          const h = parseFloat(data.height);
+          const w = parseFloat(data.weight);
+          statHeight.textContent = isFinite(h) ? `${h} cm` : '– cm';
+          statWeight.textContent = isFinite(w) ? `${w} kg` : '– kg';
+          if (isFinite(h) && isFinite(w) && h > 0) {
+            const bmi = (w / ((h / 100) ** 2)).toFixed(1);
+            statBMI.textContent = bmi;
+          } else {
+            statBMI.textContent = '–';
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load user profile", e);
+      }
+    }
+
+    /* ========= Save Profile ========= */
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const payload = {
+          name: document.getElementById('fullName').value.trim(),
+          age: document.getElementById('age').value,
+          gender: document.getElementById('gender').value,
+          phone: document.getElementById('phone').value.trim(),
+          height: document.getElementById('height').value,
+          weight: document.getElementById('weight').value,
+          healthHistory: document.getElementById('healthHistory').value.trim(),
+          updatedAt: serverTimestamp()
+        };
+
+        await setDoc(doc(db, 'profile', currentUser.uid), payload, { merge: true });
+
+        //  Update sidebar immediately
+        sidebarName.textContent = payload.name || "User";
+
+        alert('Profile updated!');
+        await loadUserProfile(); // reload so form always stays filled with latest data
+      } catch (e) {
+        console.error(e);
+        alert('Failed to update profile: ' + e.message);
+      }
+    });
+
+    /* ========= Load Approved Experts (Home) ========= */
+    async function loadApprovedExperts() {
+      expertsGrid.innerHTML = '<p>Loading experts...</p>';
+      try {
+        const q = query(collection(db, 'experts'), where('status', '==', 'approved'));
+        const qs = await getDocs(q);
+        approvedExperts = [];
+        expertsGrid.innerHTML = '';
+
+        qs.forEach(docSnap => {
+          const ex = { id: docSnap.id, ...docSnap.data() };
+          approvedExperts.push(ex);
+        });
+
+        // Render cards
+        renderExpertCards(approvedExperts);
+      } catch (e) {
+        console.error('Failed to load experts', e);
+        expertsGrid.innerHTML = '<p style="color:#c00">Failed to load experts.</p>';
+      }
+    }
+    function renderExpertCards(list) {
+      expertsGrid.innerHTML = '';
+      if (list.length === 0) {
+        expertsGrid.innerHTML = '<p>No approved experts found.</p>';
+        return;
+      }
+
+      list.forEach(expert => {
+        const imgHTML = expert.profilePic
+          ? `<img src="${expert.profilePic}" alt="expert">`
+          : `<i class="fas fa-user-md"></i>`;
+
+        const rating = expert.rating !== undefined ? expert.rating.toFixed(1) : '—';
+        const role = expert.role || 'Professional';
+
+        const card = document.createElement('div');
+        card.className = 'expert-card';
+        card.innerHTML = `
+      <div class="expert-img">${imgHTML}</div>
+      <div class="expert-info">
+        <h3 class="expert-name">${expert.name || 'Expert'}</h3>
+        <div class="expert-role">${role}</div>
+        <p class="expert-specialization">${expert.specialization || 'Health & Wellness'}</p>
+        <div class="expert-details">
+          <span><i class="fas fa-clock"></i> ${expert.workHours || '9–5'}</span>
+          <span><i class="fas fa-dollar-sign"></i> ${expert.rate || '—'}/hr</span>
+        </div>
+        <div class="expert-rating">
+          <i class="fas fa-star"></i> <span id="rating-${expert.id}">${rating}</span>
+        </div>
+        <div class="expert-buttons" style="display:flex; gap:10px;">
+          <button class="btn btn-primary btn-book" data-id="${expert.id}">
+            <i class="fas fa-calendar-check"></i> Book Appointment
+          </button>
+          <button class="btn btn-secondary btn-rate" data-id="${expert.id}">
+            <i class="fas fa-star"></i> Rate
+          </button>
+        </div>
+      </div>
+    `;
+
+        // Correctly attach event listeners
+        card.querySelector('.btn-book').addEventListener('click', () => openBookingModal(expert.id));
+        card.querySelector('.btn-rate').addEventListener('click', () => openRatingPopup(expert.id, expert.rating));
+
+        expertsGrid.appendChild(card);
+      });
+    }
+
+    function openRatingPopup(expertId, currentRating = 0) {
+      // Remove any existing popup first
+      const existingPopup = document.querySelector('.rating-popup');
+      if (existingPopup) existingPopup.remove();
+
+      // Create popup
+      const popup = document.createElement('div');
+      popup.className = 'rating-popup';
+      popup.style.position = 'fixed';
+      popup.style.top = '0';
+      popup.style.left = '0';
+      popup.style.width = '100%';
+      popup.style.height = '100%';
+      popup.style.background = 'rgba(0,0,0,0.5)';
+      popup.style.display = 'flex';
+      popup.style.justifyContent = 'center';
+      popup.style.alignItems = 'center';
+      popup.style.zIndex = '9999';
+
+      // Create stars (1–5)
+      let starsHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        starsHTML += `<span class="star" data-value="${i}" style="font-size:30px;cursor:pointer;color:${i <= Math.round(currentRating) ? '#FFD700' : '#ccc'}">&#9733;</span>`;
+      }
+
+      popup.innerHTML = `
+    <div class="rating-content" style="background:#fff;padding:20px;border-radius:10px;width:300px;text-align:center;">
+      <h3>Rate Expert</h3>
+      <div class="star-container" style="margin:15px 0;">${starsHTML}</div>
+      <div class="rating-buttons" style="display:flex;justify-content:space-between;">
+          <button class="submitRating btn btn-primary">Submit</button>
+          <button class="cancelRating btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  `;
+
+      document.body.appendChild(popup);
+
+      let selectedRating = Math.round(currentRating);
+
+      // Highlight stars on hover & click
+      const starElems = popup.querySelectorAll('.star');
+      starElems.forEach(star => {
+        const value = parseInt(star.dataset.value);
+        star.addEventListener('mouseenter', () => {
+          starElems.forEach(s => s.style.color = s.dataset.value <= value ? '#FFD700' : '#ccc');
+        });
+        star.addEventListener('mouseleave', () => {
+          starElems.forEach(s => s.style.color = s.dataset.value <= selectedRating ? '#FFD700' : '#ccc');
+        });
+        star.addEventListener('click', () => {
+          selectedRating = value;
+          starElems.forEach(s => s.style.color = s.dataset.value <= selectedRating ? '#FFD700' : '#ccc');
+        });
+      });
+
+      // Cancel button
+      popup.querySelector('.cancelRating').addEventListener('click', () => popup.remove());
+
+      // Submit rating to subcollection
+      popup.querySelector('.submitRating').addEventListener('click', async () => {
+        if (!selectedRating) {
+          alert('Please select a rating!');
+          return;
+        }
+
+        try {
+          // Use a subcollection "ratings" under the expert document
+          const ratingRef = doc(db, 'experts', expertId, 'ratings', currentUser.uid);
+          await setDoc(ratingRef, { rating: selectedRating, userId: currentUser.uid, createdAt: serverTimestamp() });
+
+          // Optionally, calculate average rating to show on expert card
+          const ratingsSnap = await getDocs(collection(db, 'experts', expertId, 'ratings'));
+          let sum = 0;
+          ratingsSnap.forEach(r => sum += r.data().rating);
+          const avgRating = sum / ratingsSnap.size;
+
+          document.getElementById(`rating-${expertId}`).textContent = avgRating.toFixed(1);
+          alert('Rating submitted successfully!');
+          popup.remove();
+        } catch (err) {
+          console.error('Error submitting rating:', err);
+          alert('Failed to submit rating: ' + err.message);
+        }
+      });
+    }
+
+
+
+    function openBookingModal(expertId) {
+      selectedExpertId = expertId;
+      bookingModal.style.display = 'flex';
+    }
+
+    // Handle booking form submission
+    bookingForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const date = document.getElementById('appointmentDate').value;
+      const time = document.getElementById('appointmentTime').value;
+      const notes = document.getElementById('appointmentNotes').value;
+
+      if (!date || !time) {
+        alert('Please select both date and time');
+        return;
+      }
+
+      try {
+        const appointmentData = {
+          expertId: selectedExpertId,
+          clientId: currentUser.uid,
+          date,
+          time,
+          notes,
+          status: 'pending',         // Appointment approval status
+          paymentStatus: 'pending',  // Payment status
+          createdAt: serverTimestamp()
+        };
+
+        await addDoc(collection(db, 'appointments'), appointmentData);
+        alert('Appointment request sent successfully!');
+        bookingModal.style.display = 'none';
+        bookingForm.reset();
+      } catch (error) {
+        console.error('Error booking appointment:', error);
+        alert('Failed to book appointment: ' + error.message);
+      }
+    });
+
+
+    // Search/filter
+    function applyExpertSearch() {
+      const term = expertSearch.value.trim().toLowerCase();
+      const priceValue = priceFilter.value;
+      const ratingValue = ratingFilter.value;
+      const specialtyValue = specialtyFilter.value;
+
+      const filtered = approvedExperts.filter(e => {
+        const name = (e.name || '').toLowerCase();
+        const spec = (e.specialization || e.role || '').toLowerCase();
+        const role = (e.role || '').toLowerCase();
+        const rating = String(e.rating || '');
+        const rate = parseInt(e.rate) || 0;
+
+        // Text search
+        if (term && !name.includes(term) && !spec.includes(term) && !rating.includes(term)) {
+          return false;
+        }
+
+        // Price filter
+        if (priceValue === 'low' && rate >= 50) return false;
+        if (priceValue === 'medium' && (rate < 50 || rate > 100)) return false;
+        if (priceValue === 'high' && rate <= 100) return false;
+
+        // Rating filter
+        if (ratingValue && e.rating < parseFloat(ratingValue)) return false;
+
+        // Specialty filter
+        if (specialtyValue && !role.includes(specialtyValue)) return false;
+
+        return true;
+      });
+      renderExpertCards(filtered);
+    }
+
+    searchBtn.addEventListener('click', applyExpertSearch);
+    expertSearch.addEventListener('keyup', (e) => { if (e.key === 'Enter') applyExpertSearch(); });
+    applyFiltersBtn.addEventListener('click', applyExpertSearch);
+
+    // ================= AI EXERCISES =================
+    const exercises = {
+      'Bicep_curl': { name: 'Bicep Curl', description: 'Bend your elbow to bring the weight toward your shoulder.' },
+      'front_raise': { name: 'Front Raise', description: 'Raise the weight in front of you to shoulder height.' },
+      'shoulder_press': { name: 'Shoulder Press', description: 'Press the weight overhead, then lower back to shoulders.' }
+    };
+
+    // ================= DOM ELEMENTS =================
+    const exerciseOptions = document.querySelectorAll('.exercise-option');
+    const startBtnContainer = document.getElementById('start-btn-container');
+    const startExerciseBtn = document.getElementById('start-exercise');
+    const exerciseModal = document.getElementById('exercise-modal');
+    const closeModalBtn = document.getElementById('close-modal');
+    const stopExerciseBtn = document.getElementById('stop-exercise');
+    const exerciseModalTitle = document.getElementById('exercise-modal-title');
+    const repCountElement = document.getElementById('rep-count');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progress-text');
+    const exerciseFeedback = document.getElementById('exercise-feedback');
+
+    let currentExercise = null;
+    let repCount = 0;
+    let targetReps = 10;
+    let exerciseInterval = null;
+
+    // ================== BASE URL FOR FLASK BACKEND ==================
+    const BASE_URL = "http://127.0.0.1:5000"; // <-- change this if running in Docker: "http://flask-backend:5000"
+
+    // ================= SELECT EXERCISE =================
+    exerciseOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        exerciseOptions.forEach(opt => opt.classList.remove('active'));
+        option.classList.add('active');
+        currentExercise = option.getAttribute('data-exercise');
+        startBtnContainer.style.display = 'block';
+      });
+    });
+
+    // ================= START EXERCISE =================
+    startExerciseBtn.addEventListener('click', async () => {
+      if (!currentExercise) return;
+
+      repCount = 0;
+      updateRepDisplay();
+      exerciseFeedback.textContent = "Starting...";
+      exerciseModalTitle.textContent = exercises[currentExercise].name;
+
+      try {
+        const res = await fetch(`${BASE_URL}/start`, {   // <-- updated here
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ exercise: currentExercise })
+        });
+
+        const data = await res.json();
+        if (data.status !== "success") {
+          alert(data.message);
+          return;
+        }
+
+        exerciseModal.style.display = 'flex';
+        startExerciseFromBackend();
+
+      } catch (err) {
+        console.error("Error starting exercise:", err);
+        alert("Failed to start exercise. Check console.");
+      }
+    });
+
+    // ================= CLOSE MODAL =================
+    closeModalBtn.addEventListener('click', () => { exerciseModal.style.display = 'none'; stopExercise(); });
+    stopExerciseBtn.addEventListener('click', () => { exerciseModal.style.display = 'none'; stopExercise(); });
+
+    // ================= STOP EXERCISE =================
+    function stopExercise() {
+      if (exerciseInterval) { clearInterval(exerciseInterval); exerciseInterval = null; }
+    }
+
+    // ================= UPDATE REP DISPLAY =================
+    function updateRepDisplay() {
+      repCountElement.textContent = repCount;
+      const progress = (repCount / targetReps) * 100;
+      progressFill.style.width = `${progress}%`;
+      progressText.textContent = `${repCount}/${targetReps}`;
+    }
+
+    // ================= POLL BACKEND =================
+    function startExerciseFromBackend() {
+      stopExercise();
+
+      exerciseInterval = setInterval(async () => {
+        try {
+          const res = await fetch(`${BASE_URL}/status`);   // <-- updated here
+          const data = await res.json();
+
+          repCount = data.reps;
+          updateRepDisplay();
+
+          if (data.feedback) exerciseFeedback.textContent = data.feedback;
+
+          if (data.done) {
+            stopExercise();
+            exerciseFeedback.textContent = "🎉 Congratulations! Exercise completed.";
+            setTimeout(() => { exerciseModal.style.display = 'none'; }, 2000);
+          }
+
+        } catch (err) {
+          console.error("Error fetching exercise data:", err);
+        }
+      }, 1000);
+    }
+
+    /* ========= Health Simulation ========= */
+
+
+
+    /* ========= Complaint Box ========= */
+    document.getElementById('complaintForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentUser) return alert('Please login first');
+
+      const userName = document.getElementById('complaintUserName').value.trim();
+      const title = document.getElementById('complaintTitle').value.trim();
+      const category = document.getElementById('complaintCategory').value;
+      const description = document.getElementById('complaintDescription').value.trim();
+      const urgent = document.getElementById('urgentComplaint').checked;
+
+      if (!userName || !title || !category || !description) {
+        return alert('Please enter all required fields');
+      }
+
+      try {
+        await addDoc(collection(db, 'complaints'), {
+          userId: currentUser.uid,
+          userName,
+          title,
+          category,
+          description,
+          urgent,
+          status: 'pending',
+          recipient: 'admin',
+          createdAt: serverTimestamp()
+        });
+        alert('Complaint submitted successfully to admin!');
+        e.target.reset();
+      } catch (err) {
+        console.error(err);
+        alert('Failed to submit complaint: ' + err.message);
+      }
+    });
+
+    /* ========= Notifications ========= */
+    let notifications = [];
+    let unreadNotifications = 0;
+
+    function setupNotificationsListener() {
+      // Listen for user's appointments
+      const appointmentsQuery = query(
+        collection(db, 'appointments'),
+        where('clientId', '==', currentUser.uid)
+      );
+
+      onSnapshot(appointmentsQuery, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === 'added' || change.type === 'modified') {
+            const data = change.doc.data();
+            const appointmentId = change.doc.id;
+
+            // Handle different appointment statuses
+            if (data.status === 'rejected') {
+              addNotification({
+                id: appointmentId,
+                type: 'appointment',
+                title: 'Booking Rejected',
+                message: `Your appointment request has been rejected.`,
+                timestamp: new Date(),
+                read: false
+              });
+            } else if (data.status === 'accepted') {
+              addNotification({
+                id: appointmentId,
+                type: 'appointment',
+                title: 'Booking Accepted',
+                message: `Your appointment request has been accepted. Please complete payment.`,
+                timestamp: new Date(),
+                read: false,
+                action: () => {
+                  selectedAppointmentId = appointmentId;
+                  document.getElementById('paymentAmount').value = `$50`; // Example amount
+                  paymentModal.style.display = 'flex';
+                }
+              });
+            } else if (data.status === 'confirmed') {
+              addNotification({
+                id: appointmentId,
+                type: 'appointment',
+                title: 'Payment Confirmed',
+                message: `Your appointment is confirmed.`,
+                timestamp: new Date(),
+                read: false
+              });
+            }
+          }
+        });
+      });
+    }
+
+    function addNotification(notification) {
+      // Check if notification already exists
+      if (notifications.find(n => n.id === notification.id)) return;
+
+      notifications.unshift(notification);
+      if (!notification.read) unreadNotifications++;
+      updateNotificationUI();
+    }
+
+    function updateNotificationUI() {
+      const notificationCount = document.getElementById('notificationCount');
+      const notificationList = document.getElementById('notificationList');
+
+      // Update badge count
+      notificationCount.textContent = unreadNotifications;
+      notificationCount.style.display = unreadNotifications > 0 ? 'flex' : 'none';
+
+      // Update notification list
+      notificationList.innerHTML = '';
+
+      if (notifications.length === 0) {
+        notificationList.innerHTML = '<div class="notification-empty">No notifications yet</div>';
+        return;
+      }
+
+      notifications.slice(0, 5).forEach(notification => {
+        const notificationEl = document.createElement('div');
+        notificationEl.className = `notification-item ${notification.read ? '' : 'unread'}`;
+
+        // Format time
+        const timeString = formatTime(notification.timestamp);
+
+        notificationEl.innerHTML = `
+                <div class="notification-icon">
+                    <i class="fas ${getNotificationIcon(notification.type)}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${notification.title}</div>
+                    <div class="notification-message">${notification.message}</div>
+                    <div class="notification-time">${timeString}</div>
+                </div>
+                ${!notification.read ? '<div class="notification-dot"></div>' : ''}
+            `;
+
+        // Add click handler for notifications with actions
+        if (notification.action) {
+          notificationEl.classList.add('clickable');
+          notificationEl.addEventListener('click', () => {
+            if (!notification.read) {
+              notification.read = true;
+              unreadNotifications--;
+              updateNotificationUI();
+            }
+            notification.action();
+          });
+        }
+
+        notificationList.appendChild(notificationEl);
+      });
+
+      // Add "View All" option if there are more than 5 notifications
+      if (notifications.length > 5) {
+        const viewAll = document.createElement('div');
+        viewAll.className = 'notification-view-all';
+        viewAll.textContent = 'View all notifications';
+        viewAll.addEventListener('click', () => {
+          // Show all notifications in a modal or separate page
+          showAllNotificationsModal();
+        });
+        notificationList.appendChild(viewAll);
+      }
+    }
+
+    function formatTime(date) {
+      const now = new Date();
+      const diffMs = now - new Date(date);
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins} min ago`;
+      if (diffHours < 24) return `${diffHours} hr ago`;
+      if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+
+      return new Date(date).toLocaleDateString();
+    }
+
+    function getNotificationIcon(type) {
+      const icons = {
+        'appointment': 'fa-calendar-check',
+        'payment': 'fa-credit-card',
+        'message': 'fa-comment',
+        'system': 'fa-info-circle'
+      };
+      return icons[type] || 'fa-bell';
+    }
+
+    function showAllNotificationsModal() {
+      // Create a modal to show all notifications
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.innerHTML = `
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h3>All Notifications</h3>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="allNotificationsList" class="notifications-container"></div>
+                </div>
+            </div>
+        `;
+
+      document.body.appendChild(modal);
+      modal.style.display = 'flex';
+
+      const allNotificationsList = document.getElementById('allNotificationsList');
+      notifications.forEach(notification => {
+        const notificationEl = document.createElement('div');
+        notificationEl.className = `notification-item ${notification.read ? '' : 'unread'}`;
+
+        const timeString = formatTime(notification.timestamp);
+
+        notificationEl.innerHTML = `
+                <div class="notification-icon">
+                    <i class="fas ${getNotificationIcon(notification.type)}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${notification.title}</div>
+                    <div class="notification-message">${notification.message}</div>
+                    <div class="notification-time">${timeString}</div>
+                </div>
+                ${!notification.read ? '<div class="notification-dot"></div>' : ''}
+            `;
+
+        if (notification.action) {
+          notificationEl.classList.add('clickable');
+          notificationEl.addEventListener('click', () => {
+            if (!notification.read) {
+              notification.read = true;
+              unreadNotifications--;
+              updateNotificationUI();
+            }
+            notification.action();
+            modal.remove();
+          });
+        }
+
+        allNotificationsList.appendChild(notificationEl);
+      });
+
+      // Close modal handlers
+      modal.querySelector('.close-modal').addEventListener('click', () => {
+        modal.remove();
+      });
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.remove();
+        }
+      });
+    }
+
+
+    /* ========= Stripe Payment Simulation ========= */
+    const stripe = Stripe("pk_test_51S16vtRJ2avQtSA1UlZLUjA7jPPflXXdRzzw0ZzWBb3PtpigTJhTnHm3HukiVn3IZ2SCW6E85Lo9ajLn60o7dRFx00Y2d5gKdR");
+    const elements = stripe.elements();
+
+    const style = {
+      base: { fontSize: '16px', color: '#32325d', '::placeholder': { color: '#a0aec0' }, fontFamily: 'sans-serif' },
+      invalid: { color: '#c00' }
+    };
+
+    const cardNumber = elements.create("cardNumber", { style, showIcon: true });
+    const cardExpiry = elements.create("cardExpiry", { style });
+    const cardCvc = elements.create("cardCvc", { style });
+    const postalCode = elements.create("postalCode", { style });
+
+    cardNumber.mount("#card-number");
+    cardExpiry.mount("#card-expiry");
+    cardCvc.mount("#card-cvc");
+    postalCode.mount("#postal-code");
+
+    const payButton = document.getElementById("payButton");
+
+
+    payButton.addEventListener("click", async (e) => {
+      e.preventDefault();
+      payButton.disabled = true;
+
+      const amount = document.getElementById("amount").value;
+      if (!amount || amount <= 0) {
+        alert("Please enter a valid amount");
+        payButton.disabled = false;
+        return;
+      }
+
+      try {
+        // Create PaymentIntent from Node.js backend
+        // Instead of http://localhost:3000
+        const res = await fetch("/create-payment-intent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount })
+        });
+
+        const data = await res.json();
+        const clientSecret = data.clientSecret;
+
+        const result = await stripe.confirmCardPayment(clientSecret, { payment_method: { card: cardNumber } });
+
+        if (result.error) {
+          paymentStatus.style.display = "block";
+          paymentStatus.innerHTML = `<div style="color:#c00; font-weight:bold;">${result.error.message}</div>`;
+          payButton.disabled = false;
+        } else {
+          if (result.paymentIntent.status === "succeeded") {
+            paymentStatus.style.display = "block";
+            //  Show success popup FIRST
+            Swal.fire({
+              icon: 'success',
+              title: 'Payment Successful!',
+              text: `Your payment of $${amount} has been processed.`,
+              confirmButtonText: 'OK',
+              confirmButtonColor: '#635bff'
+            }).then(async () => {
+              try {
+                // 🔎 Find the latest pending appointment for this user
+                const q = query(
+                  collection(db, "appointments"),
+                  where("clientId", "==", auth.currentUser.uid),
+                  where("paymentStatus", "==", "pending"),
+                  orderBy("createdAt", "desc"),
+                  limit(1)
+                );
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                  const docSnap = querySnapshot.docs[0];
+                  const appointmentId = docSnap.id;
+                  const appointmentData = docSnap.data();
+
+                  // 1️⃣ Update payment status
+                  const appointmentRef = doc(db, "appointments", appointmentId);
+                  await updateDoc(appointmentRef, { paymentStatus: "completed" });
+                  console.log(" Payment status updated in Firestore!");
+
+                  // 2️⃣ Fetch expert Zoom link
+                  const expertDocRef = doc(db, "experts", appointmentData.expertId);
+                  const expertSnap = await getDoc(expertDocRef);
+
+                  if (expertSnap.exists() && expertSnap.data().zoomLink) {
+                    const zoomLink = expertSnap.data().zoomLink;
+
+                    Swal.fire({
+                      icon: 'info',
+                      title: 'Join Your Meeting',
+                      html: `
+              <p>Click below to copy your expert's Zoom link:</p>
+              <input type="text" id="zoomLinkInput" value="${zoomLink}" readonly 
+                style="width:100%; padding:8px; border-radius:5px; border:1px solid #dbe5f0;">
+              <button id="copyZoomBtn" 
+                style="margin-top:10px; padding:8px 12px; background:#635bff; color:#fff; border:none; border-radius:5px; cursor:pointer;">
+                Copy Link
+              </button>
+            `,
+                      showConfirmButton: false
+                    });
+
+                    // Copy button
+                    setTimeout(() => {
+                      const copyBtn = document.getElementById("copyZoomBtn");
+                      copyBtn.addEventListener("click", () => {
+                        const input = document.getElementById("zoomLinkInput");
+                        input.select();
+                        document.execCommand("copy");
+                        Swal.fire({
+                          icon: 'success',
+                          title: 'Copied!',
+                          text: 'Zoom link copied to clipboard.',
+                          timer: 1500,
+                          showConfirmButton: false
+                        });
+                      });
+                    }, 100);
+                  } else {
+                    console.warn("⚠️ No Zoom link found for this expert.");
+                  }
+                } else {
+                  console.warn("⚠️ No pending appointment found for this client.");
+                }
+              } catch (err) {
+                console.error(" Firestore update failed:", err);
+              }
+
+              payButton.disabled = false;
+            });
+          }
+
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert("Payment failed: " + err.message);
+        payButton.disabled = false;
+      }
+    });
+
+
+    //workout 
+
+    const rapidApiKey = "dc9c5720camshf90f4c7abbcbce3p1ff35ajsn875cc3f65638";
+    const rapidApiHost = "exercisedb.p.rapidapi.com";
+
+    // Reuse Diet Table Builder Styles for Workout
+    function buildWorkoutDayTable(dayTitle, rows) {
+      const wrapper = document.createElement("div");
+      wrapper.style.marginTop = "18px";
+
+      const h = document.createElement("h3");
+      h.textContent = dayTitle;
+      h.style.margin = "12px 0 8px";
+      h.style.padding = "8px 12px";
+      h.style.background = "#eef4ff";
+      h.style.borderLeft = "6px solid #1f4bb2";
+      h.style.color = "#1f2d3d";
+      h.style.fontFamily = "Segoe UI, Tahoma, Geneva, Verdana, sans-serif";
+      wrapper.appendChild(h);
+
+      const table = document.createElement("table");
+      table.style.width = "100%";
+      table.style.borderCollapse = "collapse";
+      table.style.marginBottom = "12px";
+      table.style.fontFamily = "Segoe UI, Tahoma, Geneva, Verdana, sans-serif";
+
+      const thead = document.createElement("thead");
+      thead.innerHTML = `
+    <tr style="background:#023e8a; color:#fff;">
+      <th style="padding:10px; text-align:left;">Exercise</th>
+      <th style="padding:10px; text-align:left;">Target</th>
+      <th style="padding:10px; text-align:left;">Body Part</th>
+      <th style="padding:10px; text-align:left;">Equipment</th>
+      <th style="padding:10px; text-align:left;">Sets/Reps</th>
+    </tr>`;
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      rows.forEach((r, i) => {
+        const tr = document.createElement("tr");
+        tr.style.background = i % 2 === 0 ? "#f5fbff" : "#e9f6ff";
+        tr.innerHTML = `
+      <td style="padding:8px;">${r.name}</td>
+      <td style="padding:8px;">${r.target}</td>
+      <td style="padding:8px;">${r.bodyPart}</td>
+      <td style="padding:8px;">${r.equipment}</td>
+      <td style="padding:8px;">${r.setsReps}</td>
+    `;
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+
+      table.querySelectorAll("th, td").forEach(cell => {
+        cell.style.border = "1px solid #dbe5f0";
+      });
+
+      wrapper.appendChild(table);
+      return wrapper;
+    }
+
+    // Main button logic
+    document.getElementById("genWorkoutBtn").addEventListener("click", async () => {
+      const goal = document.getElementById("goal").value;
+      const experience = document.getElementById("experience").value;
+      const planDiv = document.getElementById("workoutPlan");
+
+      planDiv.innerHTML = `<div class="loading" style="text-align:center; margin-top:20px;">
+    <i class="fas fa-spinner fa-spin"></i> Generating your 7-day workout plan...
+  </div>`;
+
+      try {
+        const res = await fetch("https://exercisedb.p.rapidapi.com/exercises", {
+          method: "GET",
+          headers: {
+            "X-RapidAPI-Key": rapidApiKey,
+            "X-RapidAPI-Host": rapidApiHost
+          }
+        });
+
+        let exercises = await res.json();
+        if (!Array.isArray(exercises) || exercises.length === 0) {
+          planDiv.innerHTML = "❌ Error: No exercises found from ExerciseDB API.";
+          return;
+        }
+
+        let filteredExercises;
+        switch (goal) {
+          case "weight_loss":
+            filteredExercises = exercises.filter(e =>
+              ["cardio", "waist", "upper legs", "lower legs", "back"].includes(e.bodyPart)
+            );
+            break;
+          case "muscle_gain":
+            filteredExercises = exercises.filter(e => e.equipment !== "body weight");
+            break;
+          default:
+            filteredExercises = exercises;
+        }
+
+        if (filteredExercises.length === 0) {
+          planDiv.innerHTML = "❌ Error: No exercises match your goal.";
+          return;
+        }
+
+        let exercisesPerDay = experience === "beginner" ? 2 : experience === "intermediate" ? 3 : 4;
+        filteredExercises = filteredExercises.sort(() => Math.random() - 0.5);
+
+        let setsReps = experience === "beginner" ? "2-3 sets of 8-10 reps" :
+          experience === "intermediate" ? "3-4 sets of 10-12 reps" :
+            "4-5 sets of 12-15 reps";
+        if (goal === "weight_loss") setsReps += " | 20-30 min cardio";
+
+        const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        planDiv.innerHTML = "";
+
+        let exerciseIndex = 0;
+        for (let day = 0; day < 7; day++) {
+          const rows = [];
+          for (let i = 0; i < exercisesPerDay; i++) {
+            const ex = filteredExercises[exerciseIndex % filteredExercises.length];
+            exerciseIndex++;
+            rows.push({
+              name: ex.name,
+              target: ex.target,
+              bodyPart: ex.bodyPart,
+              equipment: ex.equipment,
+              setsReps: setsReps
+            });
+          }
+          planDiv.appendChild(buildWorkoutDayTable(weekdays[day] + " - " + getDayFocus(goal, day + 1), rows));
+        }
+
+        document.getElementById("downloadWorkout").style.display = "block";
+
+      } catch (err) {
+        console.error(err);
+        planDiv.innerHTML = `<div style="padding:15px; border-radius:8px; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin-top:20px;">
+      <h2 style="color:#ff073a;"><i class="fas fa-exclamation-triangle"></i> Error</h2>
+      <p>There was an error generating your workout plan. Please try again.</p>
+    </div>`;
+      }
+    });
+
+    // Helper: Determine day focus
+    function getDayFocus(goal, day) {
+      if (goal === "weight_loss") {
+        const focuses = ["Cardio", "Full Body", "HIIT", "Cardio", "Strength", "Active Rest", "Cardio"];
+        return focuses[day - 1];
+      } else if (goal === "muscle_gain") {
+        const focuses = ["Chest & Triceps", "Back & Biceps", "Legs", "Shoulders", "Chest & Back", "Arms", "Rest"];
+        return focuses[day - 1];
+      } else {
+        const focuses = ["Full Body", "Cardio", "Strength", "Yoga/Flexibility", "Full Body", "Cardio", "Active Rest"];
+        return focuses[day - 1];
+      }
+    }
+
+    const { jsPDF } = window.jspdf;
+
+    document.getElementById("downloadWorkoutBtn").addEventListener("click", () => {
+      const pdf = new jsPDF();
+      const tables = document.querySelectorAll("#workoutPlan table");
+
+      if (tables.length === 0) {
+        alert("No workout plan to download!");
+        return;
+      }
+
+      let currentY = 10; // initial vertical offset
+
+      tables.forEach((table, index) => {
+        // Add Day heading above the table
+        const dayHeading = table.previousElementSibling?.textContent || `Day ${index + 1}`;
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(14);
+        pdf.text(dayHeading, 14, currentY);
+        currentY += 8; // spacing after heading
+
+        // Add table
+        pdf.autoTable({
+          html: table,
+          startY: currentY,
+          theme: 'striped',
+          headStyles: { fillColor: [2, 62, 138], textColor: 255 },
+          alternateRowStyles: { fillColor: [245, 251, 255] },
+          margin: { left: 14, right: 14 },
+          styles: { font: "helvetica", fontSize: 10 },
+          didDrawPage: function (data) {
+            currentY = data.cursor.y + 10; // update Y position for next table
+          }
+        });
+      });
+
+      const today = new Date();
+      const dateStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+      pdf.save(`WorkoutPlan-${dateStr}.pdf`);
+    });
+
+
+    //Diet Plan with FitForge Api
+
+    const DIET_RAPID_KEY = "dc9c5720camshf90f4c7abbcbce3p1ff35ajsn875cc3f65638";
+    const DIET_RAPID_HOST = "ai-workout-meal-plan-generator-fitforge-ai.p.rapidapi.com";
+
+    // Shuffle array helper
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // Keep your table builder same as before
+    function buildDayTable(dayTitle, rows) {
+      const wrapper = document.createElement("div");
+      wrapper.style.marginTop = "18px";
+
+      const h = document.createElement("h3");
+      h.textContent = dayTitle;
+      h.style.margin = "12px 0 8px";
+      h.style.padding = "8px 12px";
+      h.style.background = "#eef4ff";
+      h.style.borderLeft = "6px solid #1f4bb2";
+      h.style.color = "#1f2d3d";
+      h.style.fontFamily = "Segoe UI, Tahoma, Geneva, Verdana, sans-serif";
+      wrapper.appendChild(h);
+
+      const table = document.createElement("table");
+      table.style.width = "100%";
+      table.style.borderCollapse = "collapse";
+      table.style.marginBottom = "12px";
+      table.style.fontFamily = "Segoe UI, Tahoma, Geneva, Verdana, sans-serif";
+
+      const thead = document.createElement("thead");
+      thead.innerHTML = `
+    <tr style="background:#023e8a; color:#fff;">
+      <th style="padding:10px; text-align:left;">Meal</th>
+      <th style="padding:10px; text-align:left;">Food</th>
+      <th style="padding:10px; text-align:left;">Category</th>
+      <th style="padding:10px; text-align:left;">Calories</th>
+      <th style="padding:10px; text-align:left;">Protein (g)</th>
+      <th style="padding:10px; text-align:left;">Fat (g)</th>
+      <th style="padding:10px; text-align:left;">Carbs (g)</th>
+    </tr>`;
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      rows.forEach((r, i) => {
+        const tr = document.createElement("tr");
+        tr.style.background = i % 2 === 0 ? "#f5fbff" : "#e9f6ff";
+        tr.innerHTML = `
+      <td style="padding:8px;">${r.meal}</td>
+      <td style="padding:8px;">${r.food}</td>
+      <td style="padding:8px;">${r.category}</td>
+      <td style="padding:8px;">${Math.round(r.calories)}</td>
+      <td style="padding:8px;">${r.protein.toFixed(1)}</td>
+      <td style="padding:8px;">${r.fat.toFixed(1)}</td>
+      <td style="padding:8px;">${r.carbs.toFixed(1)}</td>
+    `;
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+
+      table.querySelectorAll("th, td").forEach(cell => {
+        cell.style.border = "1px solid #dbe5f0";
+      });
+
+      wrapper.appendChild(table);
+      return wrapper;
+    }
+
+    // Main button logic
+    document.getElementById("genDietBtn").addEventListener("click", async () => {
+      const caloriesTarget = parseInt(document.getElementById("dietCalories").value, 10) || 2000;
+      const foodInput = document.getElementById("foodItem").value.trim();
+      const allergiesInput = document.getElementById("allergies").value.trim();
+      const planDiv = document.getElementById("dietPlan");
+
+      if (!foodInput) {
+        planDiv.innerHTML = `<p style="color:#d10000; text-align:center;">Please enter at least one food item.</p>`;
+        return;
+      }
+
+      planDiv.innerHTML = `<div style="text-align:center; margin-top:16px;"><i class="fas fa-spinner fa-spin"></i> Building your diet plan…</div>`;
+
+      try {
+        const bodyData = {
+          goal: "Build muscle",
+          diet: "High protein",
+          calories: caloriesTarget,
+          meals_per_day: 4,
+          dietary_restrictions: allergiesInput ? allergiesInput.split(",").map(s => s.trim()) : [],
+          food_dislikes: foodInput ? foodInput.split(",").map(s => s.trim()) : [],
+          medical_dietary_needs: []
+        };
+
+        const res = await fetch(`https://${DIET_RAPID_HOST}/api/generateMealPlan`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-rapidapi-key": DIET_RAPID_KEY,
+            "x-rapidapi-host": DIET_RAPID_HOST
+          },
+          body: JSON.stringify(bodyData)
+        });
+
+        if (!res.ok) throw new Error("API request failed: " + res.status);
+        const data = await res.json();
+
+        const container = document.createElement("div");
+        const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+        for (let d = 0; d < 7; d++) {
+          // Shuffle meals for each day
+          const shuffledMeals = shuffleArray(data.daily_meal_plan);
+          const rows = shuffledMeals.map(meal => ({
+            meal: meal.meal,
+            food: meal.name,
+            category: meal.meal,
+            calories: meal.calories,
+            protein: parseFloat(meal.macros.protein.replace("g", "")),
+            fat: parseFloat(meal.macros.fats.replace("g", "")),
+            carbs: parseFloat(meal.macros.carbs.replace("g", ""))
+          }));
+          container.appendChild(buildDayTable(weekdays[d], rows));
+        }
+
+        planDiv.innerHTML = "";
+        planDiv.appendChild(container);
+        document.getElementById("downloadDiet").style.display = "block";
+
+      } catch (err) {
+        console.error(err);
+        planDiv.innerHTML = `<div style="padding:14px; border-radius:8px; background:#fff1f1; border:1px solid #ffd6d6;">
+      <strong style="color:#b00000;">Error fetching diet plan.</strong>
+      <div style="color:#6b0f0f; margin-top:6px;">
+        Check your RapidAPI key and subscription.
+      </div>
+    </div>`;
+      }
+    });
+
+    document.getElementById("downloadDietBtn").addEventListener("click", () => {
+      const planDiv = document.getElementById("dietPlan");
+      const tables = planDiv.querySelectorAll("table");
+
+      if (tables.length === 0) {
+        alert("No diet plan to download!");
+        return;
+      }
+
+      const pdf = new jsPDF();
+      let currentY = 10; // start Y offset
+
+      tables.forEach((table, index) => {
+        // Add day heading (h3 above table)
+        const dayHeading = table.previousElementSibling?.textContent || `Day ${index + 1}`;
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(14);
+        pdf.text(dayHeading, 14, currentY);
+        currentY += 8; // spacing after heading
+
+        // Add table using autoTable
+        pdf.autoTable({
+          html: table,
+          startY: currentY,
+          theme: 'striped',
+          headStyles: { fillColor: [2, 62, 138], textColor: 255 },
+          alternateRowStyles: { fillColor: [245, 251, 255] },
+          margin: { left: 14, right: 14 },
+          styles: { font: "helvetica", fontSize: 10 },
+          didDrawPage: function (data) {
+            currentY = data.cursor.y + 10; // update Y for next table
+          }
+        });
+      });
+
+      const today = new Date();
+      const dateStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+      pdf.save(`DietPlan-${dateStr}.pdf`);
+    });
+
+
+
+
+    /* ========= Utility Functions ========= */
+    function shuffle(arr) { return arr.map(v => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map(p => p[1]); }
+    function capitalize(s) { return (s || '').charAt(0).toUpperCase() + (s || '').slice(1); }
+
+    //logout
+    window.logout = async function () {
+      if (confirm('Are you sure you want to logout?')) {
+        if (healthInterval) clearInterval(healthInterval);
+
+        localStorage.setItem('loggingOut', 'true'); // flag
+        await signOut(auth);
+        window.location.href = 'login.html';
+      }
+    };
+
+
+
+  </script>
+
+</body>
+
+</html>

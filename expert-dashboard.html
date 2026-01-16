@@ -1,0 +1,2212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expert Dashboard</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
+    <!-- Firebase (compat v9) -->
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif
+        }
+
+        :root {
+            --primary: #3a8496;
+            --secondary: #54c08e;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --border: #dee2e6
+        }
+
+        body {
+            background: #f5f7fb;
+            color: var(--dark);
+            overflow-x: hidden
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh
+        }
+
+        .sidebar {
+            position: fixed;
+            height: 100vh;
+            width: 280px;
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+            color: #fff;
+            padding: 20px 0;
+            box-shadow: 0 0 20px rgba(0, 0, 0, .1);
+            transition: all 0.3s ease;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, .1)
+        }
+
+        .logo i {
+            font-size: 28px;
+            margin-right: 12px
+        }
+
+        .logo h1 {
+            font-size: 20px;
+            font-weight: 600
+        }
+
+        .user-info {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, .1)
+        }
+
+        .profile-picture-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 15px;
+        }
+
+        .profile-picture {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255, 255, 255, .3);
+            background-color: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .camera-icon {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: var(--primary);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid white;
+            transition: all 0.3s;
+        }
+
+        .camera-icon:hover {
+            background: var(--secondary);
+            transform: scale(1.1);
+        }
+
+        .user-info h3 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 5px
+        }
+
+        .user-info p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, .8);
+            background: rgba(255, 255, 255, .1);
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-block
+        }
+
+        .menu {
+            padding: 20px 0
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 25px;
+            cursor: pointer;
+            transition: .3s;
+            font-size: 16px;
+            position: relative
+        }
+
+        .menu-item:hover,
+        .menu-item.active {
+            background: rgba(255, 255, 255, .1)
+        }
+
+        .menu-item i {
+            width: 30px;
+            font-size: 18px
+        }
+
+        .menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: #fff;
+            opacity: 0;
+            transition: .3s
+        }
+
+        .menu-item.active::before,
+        .menu-item:hover::before {
+            opacity: 1
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left:280px;
+            padding: 25px;
+            overflow-y: auto
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px
+        }
+
+        .header h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--dark)
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: .3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary)
+        }
+
+        .btn-light {
+            background: var(--light);
+            color: var(--dark);
+            border: 1px solid var(--border)
+        }
+
+        .btn-light:hover {
+            background: #e9ecef
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .05);
+            display: flex;
+            align-items: center
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 15px
+        }
+
+        .appointments .stat-icon {
+            background: rgba(67, 97, 238, .2);
+            color: #4361ee
+        }
+
+        .income .stat-icon {
+            background: rgba(247, 37, 133, .2);
+            color: #f72585
+        }
+
+        .rating .stat-icon {
+            background: rgba(255, 193, 7, .2);
+            color: #ffc107
+        }
+
+        .stat-info h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 5px
+        }
+
+        .stat-info p {
+            color: var(--gray);
+            font-size: 14px
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .05);
+            padding: 25px;
+            margin-bottom: 30px
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px
+        }
+
+        .card-header h3 {
+            font-size: 20px;
+            font-weight: 600
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        .table th,
+        .table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .table th {
+            font-weight: 600;
+            color: var(--gray);
+            font-size: 14px
+        }
+
+        .status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500
+        }
+
+        .status.pending {
+            background: rgba(255, 193, 7, .2);
+            color: #ffc107
+        }
+
+        .status.confirmed {
+            background: rgba(40, 167, 69, .2);
+            color: #28a745
+        }
+
+        .status.completed {
+            background: rgba(108, 117, 125, .2);
+            color: var(--gray)
+        }
+
+        .status.rejected {
+            background: rgba(220, 53, 69, .2);
+            color: #dc3545
+        }
+
+        .profile-setup {
+            max-width: 800px;
+            margin: 0 auto
+        }
+
+        .stepper {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 50px
+        }
+
+        .stepper::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--light-gray);
+            z-index: 1
+        }
+
+        .step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            width: 33.33%
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: 600;
+            color: var(--gray);
+            transition: .3s
+        }
+
+        .step.active .step-number {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff
+        }
+
+        .step.completed .step-number {
+            background: var(--success);
+            border-color: var(--success);
+            color: #fff
+        }
+
+        .step-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray)
+        }
+
+        .step.active .step-label {
+            color: var(--primary)
+        }
+
+        .step.completed .step-label {
+            color: var(--success)
+        }
+
+        .step-content {
+            display: none;
+            animation: fadeIn .5s
+        }
+
+        .step-content.active {
+            display: block
+        }
+
+        .form-group {
+            margin-bottom: 20px
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark)
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: .3s
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, .2)
+        }
+
+        .select-control {
+            background: #fff
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px
+        }
+
+        .col {
+            flex: 1
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: .3s;
+            margin-bottom: 20px;
+            background: #fafafa;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, .05)
+        }
+
+        .file-list {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .file-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: var(--light);
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+
+        .file-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-icon {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .file-name {
+            font-size: 0.9rem;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--light-gray);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1.5rem 0
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(120deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            width: 0%;
+            transition: width .5s
+        }
+
+        .approval-status {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        .success-checkmark {
+            color: var(--success);
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            display: none
+        }
+
+        .await-icon {
+            color: #FFC107;
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .approval-heading {
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .approval-message {
+            color: var(--gray);
+            margin-bottom: 25px;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Status badges */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            text-transform: capitalize;
+            font-weight: 500;
+        }
+
+        .status-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.accepted {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-badge.completed {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        /* Payment badges */
+        .payment-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            text-transform: capitalize;
+            font-weight: 500;
+        }
+
+        .payment-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .payment-badge.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .payment-badge.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Action buttons */
+        .btn-action {
+            padding: 6px 12px;
+            margin: 2px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            color: white;
+            transition: background 0.2s ease;
+        }
+
+        .btn-accept {
+            background: #28a745;
+        }
+
+        .btn-accept:hover {
+            background: #218838;
+        }
+
+        .btn-reject {
+            background: #dc3545;
+        }
+
+        .btn-reject:hover {
+            background: #c82333;
+        }
+
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .setting-card {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
+        .edit-form {
+            display: none;
+        }
+
+        .edit-form.active {
+            display: block;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: var(--warning);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-container {
+            position: relative;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        @media (max-width:768px) {
+            .row {
+                flex-direction: column;
+                gap: 0
+            }
+
+            .stats {
+                grid-template-columns: 1fr
+            }
+
+            .file-list {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-buttons button {
+                width: 100%;
+            }
+
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <i class="fas fa-dumbbell"></i>
+                <h1>FitAI</h1>
+            </div>
+            <div class="user-info">
+                <div class="profile-picture-container">
+                    <div class="profile-picture" id="sidebarAvatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="camera-icon" id="profilePictureUpload">
+                        <i class="fas fa-camera"></i>
+                        <input type="file" id="profilePictureInput" accept="image/*" style="display:none" />
+                    </div>
+                </div>
+                <h3 id="sidebarName">Expert</h3>
+                <p id="sidebarRole">—</p>
+            </div>
+            <div class="menu">
+                <div class="menu-item active" data-section="dashboard"><i class="fas fa-home"></i><span>Dashboard</span>
+                </div>
+                <div class="menu-item" data-section="appointments">
+                    <i class="fas fa-calendar-check"></i><span>Appointments</span>
+                    <span class="notification-badge" id="appointmentNotification" style="display: none;">0</span>
+                </div>
+                <div class="menu-item" data-section="income"><i class="fas fa-dollar-sign"></i><span>Income</span></div>
+                <div class="menu-item" data-section="settings"><i class="fas fa-cog"></i><span>Settings</span></div>
+                <div class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></div>
+            </div>
+        </div>
+
+        <!-- Main -->
+        <div class="main-content">
+            <div class="header">
+                <h2 id="mainHeader">Expert Dashboard</h2>
+                <div class="notification-container">
+                    <button class="btn btn-light" id="notificationBtn"><i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
+                    </button>
+                    <button class="btn btn-light"><i class="fas fa-envelope"></i></button>
+                </div>
+            </div>
+
+            <!-- Dashboard Section (default) -->
+            <div class="content-section active" id="dashboard-section">
+                <!-- Stats (optional static placeholders) -->
+                <div class="stats">
+                    <div class="stat-card appointments">
+                        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                        <div class="stat-info">
+                            <h3 id="statAppointments">0</h3>
+                            <p>Total Clients</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card rating">
+                        <div class="stat-icon"><i class="fas fa-star"></i></div>
+                        <div class="stat-info">
+                            <h3 id="statRating">0</h3>
+                            <p>Average Rating</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Setup -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Complete Your Profile</h3>
+                    </div>
+                    <div class="profile-setup">
+                        <div class="stepper">
+                            <div class="step active" data-step="1">
+                                <div class="step-number">1</div>
+                                <div class="step-label">Personal Info</div>
+                            </div>
+                            <div class="step" data-step="2">
+                                <div class="step-number">2</div>
+                                <div class="step-label">Documents</div>
+                            </div>
+                            <div class="step" data-step="3">
+                                <div class="step-number">3</div>
+                                <div class="step-label">Approval Status</div>
+                            </div>
+                        </div>
+
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width:0%"></div>
+                        </div>
+
+                        <!-- Step 1 -->
+                        <div class="step-content active" id="step-1">
+                            <form id="personalInfoForm">
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="form-group">
+                                            <label for="firstName">First Name</label>
+                                            <input id="firstName" class="form-control" placeholder="Ali" required />
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-group">
+                                            <label for="lastName">Last Name</label>
+                                            <input id="lastName" class="form-control" placeholder="Khan" required />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="role">Professional Type</label>
+                                    <select id="role" class="form-control select-control" required>
+                                        <option value="">Select…</option>
+                                        <option value="Physiotherapist">Physiotherapist</option>
+                                        <option value="Dietician">Dietician</option>
+                                        <option value="Trainer">Personal Trainer</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="specialization">Specialization</label>
+                                    <input id="specialization" class="form-control"
+                                        placeholder="Back Pain, Strength Training…" required />
+                                </div>
+
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="form-group">
+                                            <label for="experience">Years of Experience</label>
+                                            <input type="number" id="experience" class="form-control" min="0"
+                                                placeholder="5" required />
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-group">
+                                            <label for="rate">Hourly Rate</label>
+                                            <input type="number" id="rate" class="form-control" min="0"
+                                                placeholder="2000" required />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Work hours -->
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="form-group">
+                                            <label for="workStart">Work Start</label>
+                                            <input type="time" id="workStart" class="form-control" required />
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-group">
+                                            <label for="workEnd">Work End</label>
+                                            <input type="time" id="workEnd" class="form-control" required />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Zoom Link Field -->
+                                <div class="form-group">
+                                    <label for="zoomLink">Zoom Meeting Link</label>
+                                    <input type="url" id="zoomLink" class="form-control"
+                                        placeholder="https://zoom.us/j/your-meeting-id" required />
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="bio">Professional Bio</label>
+                                    <textarea id="bio" class="form-control" rows="4"
+                                        placeholder="Tell clients about your experience…" required></textarea>
+                                </div>
+
+                                <div class="nav-buttons">
+                                    <div></div>
+                                    <button type="button" class="btn btn-primary next-step" data-step="2">Next <i
+                                            class="fas fa-arrow-right"></i></button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Step 2 - Modified for Submit for Approval button -->
+                        <div class="step-content" id="step-2">
+                            <div class="form-group">
+                                <label>Upload Professional Certificates</label>
+                                <div class="upload-area" id="uploadArea">
+                                    <i class="fas fa-cloud-upload-alt"
+                                        style="font-size: 3rem; margin-bottom: 15px; color: var(--primary);"></i>
+                                    <h4>Click to upload or drag and drop</h4>
+                                    <p>PDF, JPG, or PNG files (Max 5MB)</p>
+                                    <input type="file" id="certificateUpload" style="display:none" multiple
+                                        accept=".pdf,.jpg,.jpeg,.png" />
+                                </div>
+                            </div>
+                            <div class="file-list" id="fileList"></div>
+                            <div class="nav-buttons">
+                                <button type="button" class="btn btn-light prev-step" data-step="1"><i
+                                        class="fas fa-arrow-left"></i> Previous</button>
+                                <button type="button" class="btn btn-primary" id="submitFromStep2">Submit for
+                                    Approval</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 - Modified to remove Previous and Submit buttons -->
+                        <div class="step-content" id="step-3">
+                            <div class="approval-status" id="approvalStatus">
+                                <i class="fas fa-hourglass-half await-icon" id="awaitIcon"></i>
+                                <div class="success-checkmark" id="successIcon"><i class="fas fa-check-circle"></i>
+                                </div>
+                                <h3 class="approval-heading" id="approvalHeading">Approval In Progress</h3>
+                                <p class="approval-message">Your profile will appear to users once approved by admin.
+                                </p>
+                                <button class="btn btn-light" id="editProfileBtn">Edit Profile Information</button>
+                            </div>
+
+                            <!-- Edit Form for Approved Profile -->
+                            <div class="edit-form" id="editApprovedForm">
+                                <form id="approvedProfileForm">
+                                    <div class="row">
+                                        <div class="col">
+                                            <div class="form-group">
+                                                <label for="editFirstName">First Name</label>
+                                                <input id="editFirstName" class="form-control" placeholder="Ali"
+                                                    required />
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="form-group">
+                                                <label for="editLastName">Last Name</label>
+                                                <input id="editLastName" class="form-control" placeholder="Khan"
+                                                    required />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="editRole">Professional Type</label>
+                                        <select id="editRole" class="form-control select-control" required>
+                                            <option value="">Select…</option>
+                                            <option value="Physiotherapist">Physiotherapist</option>
+                                            <option value="Dietician">Dietician</option>
+                                            <option value="Trainer">Personal Trainer</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="editSpecialization">Specialization</label>
+                                        <input id="editSpecialization" class="form-control"
+                                            placeholder="Back Pain, Strength Training…" required />
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col">
+                                            <div class="form-group">
+                                                <label for="editExperience">Years of Experience</label>
+                                                <input type="number" id="editExperience" class="form-control" min="0"
+                                                    placeholder="5" required />
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="form-group">
+                                                <label for="editRate">Hourly Rate</label>
+                                                <input type="number" id="editRate" class="form-control" min="0"
+                                                    placeholder="2000" required />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Work hours -->
+                                    <div class="row">
+                                        <div class="col">
+                                            <div class="form-group">
+                                                <label for="editWorkStart">Work Start</label>
+                                                <input type="time" id="editWorkStart" class="form-control" required />
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="form-group">
+                                                <label for="editWorkEnd">Work End</label>
+                                                <input type="time" id="editWorkEnd" class="form-control" required />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Zoom Link Field in Edit Form -->
+                                    <div class="form-group">
+                                        <label for="editZoomLink">Zoom Meeting Link</label>
+                                        <input type="url" id="editZoomLink" class="form-control"
+                                            placeholder="https://zoom.us/j/your-meeting-id" required />
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="editBio">Professional Bio</label>
+                                        <textarea id="editBio" class="form-control" rows="4"
+                                            placeholder="Tell clients about your experience…" required></textarea>
+                                    </div>
+
+                                    <div class="nav-buttons">
+                                        <button type="button" class="btn btn-light" id="cancelEditBtn">Cancel</button>
+                                        <button type="button" class="btn btn-primary" id="saveApprovedBtn">Save
+                                            Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Appointments Section -->
+            <div class="content-section" id="appointments-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Your Appointments</h3>
+                    </div>
+
+                    <!-- Stat Cards Container -->
+                    <div class="stats-container" style="display: flex; gap: 20px; padding: 20px; flex-wrap: wrap;">
+                        <!-- Completed Appointments Card -->
+                        <div class="stat-card"
+                            style="flex: 1; min-width: 250px; background-color: #e8f5e9; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div>
+                                    <h4 style="margin: 0; color: #2e7d32; font-size: 16px;">Completed Sessions</h4>
+                                    <p id="completed-count"
+                                        style="font-size: 28px; font-weight: bold; margin: 10px 0 0; color: #2e7d32;">0
+                                    </p>
+                                </div>
+                                <div
+                                    style="background-color: #c8e6c9; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" style="color: #2e7d32;">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pending Appointments Card -->
+                        <div class="stat-card"
+                            style="flex: 1; min-width: 250px; background-color: #fff3e0; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div>
+                                    <h4 style="margin: 0; color: #ef6c00; font-size: 16px;">Pending Appointments</h4>
+                                    <p id="pending-count"
+                                        style="font-size: 28px; font-weight: bold; margin: 10px 0 0; color: #ef6c00;">0
+                                    </p>
+                                </div>
+                                <div
+                                    style="background-color: #ffcc80; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" style="color: #ef6c00;">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Client Name</th>
+                                    <th>Appointment Date</th>
+                                    <th>Appointment Time</th>
+                                    <th>Gender</th>
+                                    <th>Status</th>
+                                    <th>Payment Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="apptBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center;">Loading appointments...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section" id="income-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Income Overview</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats" style="display:flex; gap:20px;">
+                            <div class="stat-card" style="flex:1; padding:20px; background:#e8f5e9; border-radius:8px;">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div style="background: rgba(40, 167, 69, .2); padding:10px; border-radius:50%;">
+                                        <i class="fas fa-money-bill-wave" style="color:#28a745;"></i>
+                                    </div>
+                                    <div>
+                                        <h3 id="dailyEarnings">$0</h3>
+                                        <p>Daily Earnings</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stat-card" style="flex:1; padding:20px; background:#e3e3e3; border-radius:8px;">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div style="background: rgba(108, 117, 125, .2); padding:10px; border-radius:50%;">
+                                        <i class="fas fa-calendar" style="color:#6c757d;"></i>
+                                    </div>
+                                    <div>
+                                        <h3 id="monthlyEarnings">$0</h3>
+                                        <p>Monthly Earnings</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stat-card" style="flex:1; padding:20px; background:#fff3e0; border-radius:8px;">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div style="background: rgba(255, 193, 7, .2); padding:10px; border-radius:50%;">
+                                        <i class="fas fa-clock" style="color:#ffc107;"></i>
+                                    </div>
+                                    <div>
+                                        <h3 id="yearlyEarnings">$0</h3>
+                                        <p>Yearly Earnings</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" style="margin-top:20px;">
+                            <div class="card-header">
+                                <h4>Income Chart</h4>
+                            </div>
+                            <div class="card-body">
+                                <!-- Add this inside your HTML where you want the chart -->
+                                <canvas id="earningsChart" style="height: 300px; width: 100%;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+            <!-- Settings Section -->
+            <div class="content-section" id="settings-section">
+                <div class="settings-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Profile Settings</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="settingsFirstName">First Name</label>
+                                <input id="settingsFirstName" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsLastName">Last Name</label>
+                                <input id="settingsLastName" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsBio">Professional Bio</label>
+                                <textarea id="settingsBio" class="form-control" rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsZoomLink">Zoom Meeting Link</label>
+                                <input type="url" id="settingsZoomLink" class="form-control"
+                                    placeholder="https://zoom.us/j/your-meeting-id" />
+                            </div>
+                            <button class="btn btn-primary" id="saveProfileBtn">Save Changes</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Account Settings</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="currentEmail">Email Address</label>
+                                <input id="currentEmail" class="form-control" type="email" disabled />
+                            </div>
+                            <div class="form-group">
+                                <label for="newPassword">New Password</label>
+                                <input id="newPassword" class="form-control" type="password"
+                                    placeholder="Enter new password" />
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPassword">Confirm Password</label>
+                                <input id="confirmPassword" class="form-control" type="password"
+                                    placeholder="Confirm new password" />
+                            </div>
+                            <button class="btn btn-primary" id="changePasswordBtn">Change Password</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Notification Preferences</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="setting-card">
+                                <h4>Email Notifications</h4>
+                                <div class="form-group"
+                                    style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span>New Appointment Requests</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="form-group"
+                                    style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span>Appointment Reminders</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="form-group"
+                                    style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span>Payment Notifications</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="setting-card" style="margin-top: 20px;">
+                                <h4>Push Notifications</h4>
+                                <div class="form-group"
+                                    style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span>New Messages</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="form-group"
+                                    style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span>Appointment Alerts</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Work Schedule</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="settingsWorkStart">Work Start Time</label>
+                                <input type="time" id="settingsWorkStart" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsWorkEnd">Work End Time</label>
+                                <input type="time" id="settingsWorkEnd" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label>Working Days</label>
+                                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+                                    <label style="display: flex; align-items: center; gap: 5px;">
+                                        <input type="checkbox" checked> Monday
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 5px;">
+                                        <input type="checkbox" checked> Tuesday
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 5px;">
+                                        <input type="checkbox" checked> Wednesday
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 5px;">
+                                        <input type="checkbox" checked> Thursday
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 5px;">
+                                        <input type="checkbox" checked> Friday
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 5px;">
+                                        <input type="checkbox"> Saturday
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 5px;">
+                                        <input type="checkbox"> Sunday
+                                    </label>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" id="saveScheduleBtn">Save Schedule</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
+        import { getAuth, onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, where, getDocs, onSnapshot, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // --- Firebase config ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyApOX9p61po8QoEy07TFXuYTnmhUfJYgPU",
+            authDomain: "fyp-7221e.firebaseapp.com",
+            projectId: "fyp-7221e",
+            storageBucket: "fyp-7221e.firebasestorage.app",
+            messagingSenderId: "366694776039",
+            appId: "1:366694776039:web:e8aeb0c34c3e27ce1a7642"
+        };
+
+        // Init
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in, pass UID to the function
+                loadIncomeData(user.uid);
+                startExpertDashboardRatingsRealtime(user.uid);
+                attachExpertSnapshot(user.uid); // keep existing listener
+
+            } else {
+                console.warn("No logged-in expert found.");
+                // optionally cleanup unsubscribes
+                if (dashboardAppointmentsUnsub) { dashboardAppointmentsUnsub(); dashboardAppointmentsUnsub = null; }
+                if (dashboardRatingsUnsub) { dashboardRatingsUnsub(); dashboardRatingsUnsub = null; }
+
+            }
+        });
+
+
+
+
+        // State
+        let currentUserId = null;
+        let uploadedCertificateUrls = [];
+        let isProfileApproved = false;
+        let appointmentListener = null;
+        let pendingAppointmentsCount = 0;
+        let currentProfileStatus = '';
+
+        // --- UI refs ---
+        const steps = document.querySelectorAll('.step');
+        const stepContents = document.querySelectorAll('.step-content');
+        const nextButtons = document.querySelectorAll('.next-step');
+        const prevButtons = document.querySelectorAll('.prev-step');
+        const progressFill = document.querySelector('.progress-fill');
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('certificateUpload');
+        const fileList = document.getElementById('fileList');
+
+        const editProfileBtn = document.getElementById('editProfileBtn');
+        const submitFromStep2 = document.getElementById('submitFromStep2');
+        const approvalHeading = document.getElementById('approvalHeading');
+        const awaitIcon = document.getElementById('awaitIcon');
+        const successIcon = document.getElementById('successIcon');
+        const approvalStatus = document.getElementById('approvalStatus');
+        const editApprovedForm = document.getElementById('editApprovedForm');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const saveApprovedBtn = document.getElementById('saveApprovedBtn');
+
+        const sidebarName = document.getElementById('sidebarName');
+        const sidebarRole = document.getElementById('sidebarRole');
+        const profilePictureUpload = document.getElementById('profilePictureUpload');
+        const profilePictureInput = document.getElementById('profilePictureInput');
+        const sidebarAvatar = document.getElementById('sidebarAvatar');
+
+        // Menu items and sections
+        const menuItems = document.querySelectorAll('.menu-item[data-section]');
+        const contentSections = document.querySelectorAll('.content-section');
+        const mainHeader = document.getElementById('mainHeader');
+        const notificationBtn = document.getElementById('notificationBtn');
+        const notificationCount = document.getElementById('notificationCount');
+        const appointmentNotification = document.getElementById('appointmentNotification');
+
+        // Appointment elements
+        const apptBody = document.getElementById("apptBody");
+        const pendingCountEl = document.getElementById("pending-count");
+        const completedCountEl = document.getElementById("completed-count");
+
+        let currentStep = 1;
+        function updateProgress() { const p = ((currentStep - 1) / (steps.length - 1)) * 100; progressFill.style.width = `${p}%`; }
+        function goToStep(n) {
+            stepContents.forEach(c => c.classList.remove('active'));
+            steps.forEach(s => s.classList.remove('active', 'completed'));
+            document.getElementById(`step-${n}`).classList.add('active');
+            steps.forEach((s, i) => { if (i + 1 < n) s.classList.add('completed'); else if (i + 1 === n) s.classList.add('active'); });
+            currentStep = n; updateProgress();
+        }
+        updateProgress();
+
+        nextButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = parseInt(btn.dataset.step, 10);
+                if (currentStep === 1) {
+                    const form = document.getElementById('personalInfoForm');
+                    if (!form.checkValidity()) { form.reportValidity(); return; }
+                }
+                goToStep(target);
+            });
+        });
+
+        prevButtons.forEach(btn => {
+            btn.addEventListener('click', () => goToStep(parseInt(btn.dataset.step, 10)));
+        });
+
+        // Submit from Step 2
+        submitFromStep2.addEventListener('click', async () => {
+            if (!currentUserId) { alert("You must be logged in"); return; }
+
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const role = document.getElementById('role').value;
+            const specialization = document.getElementById('specialization').value.trim();
+            const bio = document.getElementById('bio').value.trim();
+            const experience = parseInt(document.getElementById('experience').value, 10);
+            const rate = parseFloat(document.getElementById('rate').value);
+            const start = document.getElementById('workStart').value; // "HH:MM"
+            const end = document.getElementById('workEnd').value;
+            const zoomLink = document.getElementById('zoomLink').value.trim();
+
+            if (!firstName || !lastName || !role || !specialization || !bio || isNaN(experience) || isNaN(rate) || !start || !end || !zoomLink) {
+                alert("Please complete all fields.");
+                return;
+            }
+
+            const expertDoc = {
+                name: `${firstName} ${lastName}`,
+                firstName,
+                lastName,
+                role,
+                specialization,
+                rate,
+                workHours: `${start}–${end}`,
+                bio,
+                experience,
+                zoomLink,
+                certificates: uploadedCertificateUrls, // ONLY URL STRINGS
+                status: "pending",
+                rating: 0,
+                createdAt: serverTimestamp()
+            };
+
+            try {
+                await setDoc(doc(db, 'experts', currentUserId), expertDoc, { merge: true });
+                approvalHeading.textContent = "Approval In Progress";
+                awaitIcon.style.display = 'inline-block';
+                successIcon.style.display = 'none';
+                alert("✅ Profile submitted for approval.");
+                goToStep(3);
+            } catch (err) {
+                console.error("Firestore error:", err);
+                alert("Error saving profile: " + err.message);
+            }
+        });
+
+        // Edit approved profile
+        editProfileBtn.addEventListener('click', () => {
+            approvalStatus.style.display = 'none';
+            editApprovedForm.classList.add('active');
+        });
+
+        cancelEditBtn.addEventListener('click', () => {
+            approvalStatus.style.display = 'block';
+            editApprovedForm.classList.remove('active');
+        });
+
+        // Save approved profile changes
+        saveApprovedBtn.addEventListener('click', async () => {
+            if (!currentUserId) { alert("You must be logged in"); return; }
+
+            const firstName = document.getElementById('editFirstName').value.trim();
+            const lastName = document.getElementById('editLastName').value.trim();
+            const role = document.getElementById('editRole').value;
+            const specialization = document.getElementById('editSpecialization').value.trim();
+            const bio = document.getElementById('editBio').value.trim();
+            const experience = parseInt(document.getElementById('editExperience').value, 10);
+            const rate = parseFloat(document.getElementById('editRate').value);
+            const start = document.getElementById('editWorkStart').value;
+            const end = document.getElementById('editWorkEnd').value;
+            const zoomLink = document.getElementById('editZoomLink').value.trim();
+
+            if (!firstName || !lastName || !role || !specialization || !bio || isNaN(experience) || isNaN(rate) || !start || !end || !zoomLink) {
+                alert("Please complete all fields.");
+                return;
+            }
+
+            const expertDoc = {
+                name: `${firstName} ${lastName}`,
+                firstName,
+                lastName,
+                role,
+                specialization,
+                rate,
+                workHours: `${start}–${end}`,
+                bio,
+                experience,
+                zoomLink,
+                rating,
+                updatedAt: serverTimestamp()
+            };
+
+            // If profile was rejected, set status back to pending
+            if (currentProfileStatus === 'rejected') {
+                expertDoc.status = 'pending';
+            }
+
+            try {
+                await updateDoc(doc(db, 'experts', currentUserId), expertDoc);
+                approvalStatus.style.display = 'block';
+                editApprovedForm.classList.remove('active');
+                alert(" Profile updated successfully!");
+            } catch (err) {
+                console.error("Firestore error:", err);
+                alert("Error updating profile: " + err.message);
+            }
+        });
+
+        // Menu item click handling
+        menuItems.forEach(item => {
+            item.addEventListener('click', function () {
+                const targetSection = this.dataset.section;
+
+                // Update active menu item
+                menuItems.forEach(mi => mi.classList.remove('active'));
+                this.classList.add('active');
+
+                // Update main header
+                mainHeader.textContent = this.querySelector('span').textContent;
+
+                // Show target section, hide others
+                contentSections.forEach(section => {
+                    section.classList.remove('active');
+                    if (section.id === `${targetSection}-section`) {
+                        section.classList.add('active');
+                    }
+                });
+
+                // Load appointments when dashboard is opened
+                if (targetSection === 'dashboard' && currentUserId) {
+                    loadAppointments();
+                }
+            });
+        });
+
+
+        // --- Certificate Upload with Cloudinary ---
+        uploadArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length) {
+                handleFiles(e.target.files);
+            }
+        });
+
+        async function handleFiles(files) {
+            if (!currentUserId) { alert("You must be logged in."); return; }
+
+            for (const file of files) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`File too large: ${file.name}`);
+                    continue;
+                }
+
+                const formData = new FormData();
+                formData.append("file", file);
+                formData.append("upload_preset", "expert_certificate");
+
+                try {
+                    const response = await fetch("https://api.cloudinary.com/v1_1/dfjo9n470/auto/upload", {
+                        method: "POST",
+                        body: formData
+                    });
+                    const data = await response.json();
+
+                    if (data.secure_url) {
+                        uploadedCertificateUrls.push(data.secure_url);
+
+                        // Show in UI
+                        const item = document.createElement('div');
+                        item.className = 'file-item';
+                        const iconClass = file.type.includes('image/') ? 'fa-file-image' : 'fa-file-pdf';
+                        item.innerHTML = `
+                    <i class="fas ${iconClass} file-icon"></i>
+                    <span class="file-name">${file.name}</span>
+                    <div class="file-actions">
+                        <a href="${data.secure_url}" target="_blank" class="btn btn-light" style="padding:6px 10px">View</a>
+                    </div>`;
+                        fileList.appendChild(item);
+                    } else {
+                        alert("Upload failed: " + (data.error?.message || "Unknown error"));
+                    }
+                } catch (error) {
+                    console.error("Cloudinary upload error:", error);
+                    alert("Error uploading file: " + error.message);
+                }
+            }
+            fileInput.value = '';
+        }
+
+        // --- Live expert doc listener (reflect admin approval immediately) ---
+        function attachExpertSnapshot(uid) {
+            return onSnapshot(doc(db, 'experts', uid), (snap) => {
+                if (!snap.exists()) return;
+                const d = snap.data();
+
+                // Check if profile is approved
+                isProfileApproved = d.status === 'approved';
+                currentProfileStatus = d.status || '';
+
+                // Sidebar quick info
+                sidebarName.textContent = d.name || "Expert";
+                sidebarRole.textContent = d.role || "—";
+
+                // Profile picture
+                if (d.profilePicture) {
+                    sidebarAvatar.style.backgroundImage = `url(${d.profilePicture})`;
+                    sidebarAvatar.innerHTML = '';
+                    sidebarAvatar.style.backgroundColor = 'transparent';
+                }
+
+                // Pre-fill forms
+                document.getElementById('firstName').value = d.firstName || '';
+                document.getElementById('lastName').value = d.lastName || '';
+                document.getElementById('role').value = d.role || '';
+                document.getElementById('specialization').value = d.specialization || '';
+                document.getElementById('experience').value = d.experience || '';
+                document.getElementById('rate').value = d.rate || '';
+                document.getElementById('bio').value = d.bio || '';
+                document.getElementById('zoomLink').value = d.zoomLink || '';
+
+                document.getElementById('editFirstName').value = d.firstName || '';
+                document.getElementById('editLastName').value = d.lastName || '';
+                document.getElementById('editRole').value = d.role || '';
+                document.getElementById('editSpecialization').value = d.specialization || '';
+                document.getElementById('editExperience').value = d.experience || '';
+                document.getElementById('editRate').value = d.rate || '';
+                document.getElementById('editBio').value = d.bio || '';
+                document.getElementById('editZoomLink').value = d.zoomLink || '';
+
+                // Settings form
+                document.getElementById('settingsFirstName').value = d.firstName || '';
+                document.getElementById('settingsLastName').value = d.lastName || '';
+                document.getElementById('settingsBio').value = d.bio || '';
+                document.getElementById('settingsZoomLink').value = d.zoomLink || '';
+
+                if (d.workHours) {
+                    const [start, end] = d.workHours.split('–');
+                    document.getElementById('workStart').value = start || '';
+                    document.getElementById('workEnd').value = end || '';
+                    document.getElementById('editWorkStart').value = start || '';
+                    document.getElementById('editWorkEnd').value = end || '';
+                    document.getElementById('settingsWorkStart').value = start || '';
+                    document.getElementById('settingsWorkEnd').value = end || '';
+                }
+
+                // Certificates already saved before submit? preload into list
+                if (Array.isArray(d.certificates) && d.certificates.length && fileList.children.length === 0) {
+                    uploadedCertificateUrls = d.certificates.slice(); // keep in state
+                    d.certificates.forEach((url) => {
+                        const item = document.createElement('div');
+                        item.className = 'file-item';
+                        const icon = url.toLowerCase().endsWith('.pdf') ? 'fa-file-pdf' : 'fa-file-image';
+                        const nameFromUrl = decodeURIComponent(url.split('/').pop().split('?')[0]);
+                        item.innerHTML = `<i class="fas ${icon} file-icon"></i>
+                          <span class="file-name">${nameFromUrl}</span>
+                          <div class="file-actions">
+                            <a href="${url}" target="_blank" class="btn btn-light" style="padding:6px 10px">View</a>
+                          </div>`;
+                        fileList.appendChild(item);
+                    });
+                }
+
+                // Approval UI - FIXED: Reset to correct step based on status
+                if (d.status === 'approved') {
+                    approvalHeading.textContent = "Profile Approved";
+                    awaitIcon.style.display = 'none';
+                    successIcon.style.display = 'block';
+
+                    // Show step 3 (approved) when profile is approved
+                    if (document.getElementById('dashboard-section').classList.contains('active')) {
+                        goToStep(3);
+                    }
+                } else if (d.status === 'rejected') {
+                    approvalHeading.textContent = "Profile Rejected (Please update and resubmit)";
+                    awaitIcon.style.display = 'none';
+                    successIcon.style.display = 'none';
+
+                    // Show step 2 when profile is rejected
+                    if (document.getElementById('dashboard-section').classList.contains('active')) {
+                        goToStep(2);
+                    }
+                } else if (d.status === 'pending') {
+                    approvalHeading.textContent = "Approval In Progress";
+                    awaitIcon.style.display = 'inline-block';
+                    successIcon.style.display = 'none';
+
+                    // Show step 2 when profile is pending
+                    if (document.getElementById('dashboard-section').classList.contains('active')) {
+                        goToStep(3);
+                    }
+                } else {
+                    // No status or new profile - show step 1
+                    if (document.getElementById('dashboard-section').classList.contains('active')) {
+                        goToStep(1);
+                    }
+                }
+            });
+        }
+
+
+        // ========== APPOINTMENT MANAGEMENT ==========
+        async function loadAppointments() {
+            if (!currentUserId) return;
+
+            try {
+                // Query appointments for this expert
+                const appointmentsQuery = query(
+                    collection(db, "appointments"),
+                    where("expertId", "==", currentUserId)
+                );
+
+                const unsubscribe = onSnapshot(appointmentsQuery, async (snapshot) => {
+                    apptBody.innerHTML = ""; // clear table
+                    let pendingCount = 0;
+                    let completedCount = 0;
+
+                    if (snapshot.empty) {
+                        apptBody.innerHTML = `
+                        <tr><td colspan="6" style="text-align:center;">No appointments found.</td></tr>
+                    `;
+                        pendingCountEl.textContent = 0;
+                        completedCountEl.textContent = 0;
+                        return;
+                    }
+
+                    // Process each appointment
+                    for (const docSnap of snapshot.docs) {
+                        const appt = docSnap.data();
+                        const apptId = docSnap.id;
+
+                        // Fetch client profile info
+                        let clientName = "Unknown";
+                        let gender = "-";
+
+                        try {
+                            const clientDoc = await getDoc(doc(db, "profile", appt.clientId));
+                            if (clientDoc.exists()) {
+                                const profile = clientDoc.data();
+                                clientName = profile.name || "No Name";
+                                gender = profile.gender || "-";
+                            }
+                        } catch (err) {
+                            console.error("Error fetching client profile:", err);
+                        }
+
+                        // Count statuses
+                        if (appt.status === "pending") {
+                            pendingCount++;
+                        } else if (appt.status === "accepted" || appt.status === "completed") {
+                            completedCount++;
+                        }
+
+                        // Create row
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                        <td>${clientName}</td>
+                        <td>${appt.date}</td>
+                        <td>${appt.time}</td>
+                        <td>${gender}</td>
+                        <td class="status-cell">
+                        <span class="status-badge ${appt.status}">${appt.status}</span>
+                          </td>
+                          <td class="payment-cell">
+                        <span class="payment-badge ${appt.paymentStatus || 'pending'}">
+                          ${appt.paymentStatus || 'pending'}
+                        </span>
+                        </td>
+                        <td>
+                        ${appt.status === "pending"
+                                ? `
+                  <button class="btn-action btn-accept" data-id="${apptId}">Accept</button>
+                            <button class="btn-action btn-reject" data-id="${apptId}">Reject</button>
+                                    `
+                                : "-"
+                            }
+  </td>
+`;
+                        apptBody.appendChild(row);
+
+
+
+                    }
+
+                    // Update counts
+                    pendingCountEl.textContent = pendingCount;
+                    completedCountEl.textContent = completedCount;
+
+                    const totalClients = pendingCount + completedCount;
+                    document.getElementById("statAppointments").textContent = totalClients;
+
+                    // Attach button actions
+                    document.querySelectorAll(".btn-accept").forEach((btn) => {
+                        btn.addEventListener("click", async () => {
+                            const apptId = btn.getAttribute("data-id");
+                            try {
+                                await updateDoc(doc(db, "appointments", apptId), {
+                                    status: "accepted"
+                                });
+                            } catch (error) {
+                                console.error("Error accepting appointment:", error);
+                                alert("Failed to accept appointment: " + error.message);
+                            }
+                        });
+                    });
+
+                    document.querySelectorAll(".btn-reject").forEach((btn) => {
+                        btn.addEventListener("click", async () => {
+                            const apptId = btn.getAttribute("data-id");
+                            try {
+                                await updateDoc(doc(db, "appointments", apptId), {
+                                    status: "rejected"
+                                });
+                            } catch (error) {
+                                console.error("Error rejecting appointment:", error);
+                                alert("Failed to reject appointment: " + error.message);
+                            }
+                        });
+                    });
+                });
+
+                // Store the unsubscribe function to clean up later
+                appointmentListener = unsubscribe;
+
+            } catch (error) {
+                console.error("Error loading appointments:", error);
+                apptBody.innerHTML = `
+                            < tr > <td colspan="6" style="text-align:center;color:red;">Error loading appointments.</td></tr >
+                                `;
+            }
+        }
+        let dashboardRatingsUnsub = null;
+
+        function startExpertDashboardRatingsRealtime(expertId) {
+            // Clean up previous listener if any
+            if (dashboardRatingsUnsub) dashboardRatingsUnsub();
+
+            // Real-time ratings average
+            const ratingsRef = collection(db, "experts", expertId, "ratings");
+            dashboardRatingsUnsub = onSnapshot(ratingsRef, (snap) => {
+                let total = 0;
+                let count = 0;
+
+                snap.docs.forEach(d => {
+                    const dat = d.data();
+                    if (dat && typeof dat.rating === "number") {
+                        total += dat.rating;
+                        count++;
+                    }
+                });
+
+                const avg = count > 0 ? (total / count).toFixed(1) : "0";
+                document.getElementById("statRating").textContent = avg;
+            }, (err) => {
+                console.error("Ratings real-time error:", err);
+            });
+        }
+
+
+
+
+
+        //----Income-------
+
+
+
+
+        // ================== Income Dashboard ==================
+        async function loadIncomeData() {
+            if (!auth.currentUser) return; // ensure user is logged in
+            const expertId = auth.currentUser.uid;
+
+            const today = new Date();
+            const todayStr = today.toISOString().slice(0, 10); // YYYY-MM-DD
+            const currentMonth = today.getMonth() + 1;
+            const currentYear = today.getFullYear();
+
+            let daily = 0, monthly = 0, yearly = 0;
+            let chartLabels = [];
+            let chartData = [];
+
+            try {
+                const appointmentsRef = collection(db, "appointments");
+                const q = query(
+                    appointmentsRef,
+                    where("paymentStatus", "==", "completed"),
+                    where("expertId", "==", expertId)
+                );
+
+                const snapshot = await getDocs(q);
+
+                if (snapshot.empty) {
+                    console.log("No completed appointments found.");
+                }
+
+                snapshot.forEach(docSnap => {
+                    const appt = docSnap.data();
+
+                    // Amount per session
+                    const amount = 65;
+
+                    // Validate date
+                    const apptDateStr = appt.date;
+                    const apptDate = new Date(apptDateStr);
+                    if (!apptDateStr || isNaN(apptDate)) return;
+
+                    // Update daily/monthly/yearly
+                    if (apptDateStr === todayStr) daily += amount;
+                    if (apptDate.getMonth() + 1 === currentMonth && apptDate.getFullYear() === currentYear) monthly += amount;
+                    if (apptDate.getFullYear() === currentYear) yearly += amount;
+
+                    // For chart (last 10 completed sessions)
+                    chartLabels.push(apptDateStr);
+                    chartData.push(amount);
+                });
+
+                // Update dashboard cards
+                document.getElementById("dailyEarnings").textContent = `$${daily}`;
+                document.getElementById("monthlyEarnings").textContent = `$${monthly}`;
+                document.getElementById("yearlyEarnings").textContent = `$${yearly}`;
+
+                // Build chart
+                const ctx = document.getElementById("earningsChart").getContext("2d");
+                new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: chartLabels.slice(-10),
+                        datasets: [{
+                            label: "Earnings ($)",
+                            data: chartData.slice(-10),
+                            backgroundColor: "rgba(40, 167, 69, 0.2)",
+                            borderColor: "#28a745",
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 5,
+                            pointBackgroundColor: "#28a745"
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true },
+                            x: { ticks: { autoSkip: true, maxTicksLimit: 10 } }
+                        }
+                    }
+                });
+
+            } catch (err) {
+                console.error("Error loading income data:", err);
+            }
+        }
+
+        // Run after page loads
+        window.addEventListener("DOMContentLoaded", loadIncomeData);
+
+        // Settings form handlers
+        document.getElementById('saveProfileBtn').addEventListener('click', async () => {
+            try {
+                const firstName = document.getElementById('settingsFirstName').value;
+                const lastName = document.getElementById('settingsLastName').value;
+                const bio = document.getElementById('settingsBio').value;
+                const zoomLink = document.getElementById('settingsZoomLink').value;
+
+                await updateDoc(doc(db, 'experts', currentUserId), {
+                    firstName,
+                    lastName,
+                    name: `${firstName} ${lastName} `,
+                    bio,
+                    zoomLink
+                });
+
+                alert('Profile updated successfully!');
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Error updating profile: ' + error.message);
+            }
+        });
+
+        document.getElementById('saveScheduleBtn').addEventListener('click', async () => {
+            try {
+                const workStart = document.getElementById('settingsWorkStart').value;
+                const workEnd = document.getElementById('settingsWorkEnd').value;
+
+                await updateDoc(doc(db, 'experts', currentUserId), {
+                    workHours: `${workStart}–${workEnd}`
+                });
+
+                alert('Schedule updated successfully!');
+            } catch (error) {
+                console.error('Error updating schedule:', error);
+                alert('Error updating schedule: ' + error.message);
+            }
+        });
+
+        document.getElementById('changePasswordBtn').addEventListener('click', async () => {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                alert('Passwords do not match!');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                alert('Password should be at least 6 characters');
+                return;
+            }
+
+            try {
+                await updatePassword(auth.currentUser, newPassword);
+                alert('Password changed successfully!');
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+            } catch (error) {
+                console.error('Error changing password:', error);
+                alert('Error changing password: ' + error.message);
+            }
+        });
+
+        function logout() {
+            if (appointmentListener) {
+                appointmentListener();
+                appointmentListener = null;
+            }
+            signOut(auth)
+                .then(() => window.location.href = "login.html")
+                .catch(err => console.error("Logout failed:", err));
+        }
+
+        // Expose globally so inline onclick can see it
+        window.logout = logout;
+
+        // Auth state listener
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUserId = user.uid;
+
+                // Load expert profile and set up listener
+                const unsubscribeExpert = attachExpertSnapshot(currentUserId);
+
+                // Load appointments if dashboard is active
+                if (document.getElementById('dashboard-section').classList.contains('active')) {
+                    loadAppointments();
+                }
+
+                // Store unsubscribe function for cleanup
+                return () => {
+                    if (unsubscribeExpert) unsubscribeExpert();
+                    if (appointmentListener) {
+                        appointmentListener();
+                        appointmentListener = null;
+                    }
+                };
+            } else {
+                currentUserId = null;
+                window.location.href = "login.html";
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitConnect | Login Portal</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            transition: background-image 1.5s ease-in-out;
+            padding: 20px;
+        }
+
+        .background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.5) 100%);
+            z-index: -1;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            color: white;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            animation: fadeInDown 1s ease-out;
+            text-align: center;
+        }
+
+        .logo i {
+            font-size: 2.2rem;
+            margin-right: 12px;
+            color: #ff6b6b;
+            animation: pulse 2s infinite;
+        }
+
+        .logo h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+        }
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            width: 100%;
+            max-width: 1100px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            animation: cardAppear 0.6s ease-out;
+            height: auto;
+        }
+
+        .login-card:nth-child(1) {
+            animation-delay: 0.2s;
+        }
+
+        .login-card:nth-child(2) {
+            animation-delay: 0.4s;
+        }
+
+        .login-card:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        .login-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+        }
+
+        .admin::before {
+            background: linear-gradient(90deg, #ff6b6b, #ff8e53);
+        }
+
+        .expert::before {
+            background: linear-gradient(90deg, #4ecdc4, #556270);
+        }
+
+        .user::before {
+            background: linear-gradient(90deg, #1d976c, #93f9b9);
+        }
+
+        .login-icon {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            transition: transform 0.3s ease;
+        }
+
+        .login-card:hover .login-icon {
+            transform: scale(1.1);
+        }
+
+        .admin .login-icon {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+        }
+
+        .expert .login-icon {
+            background: linear-gradient(45deg, #4ecdc4, #556270);
+        }
+
+        .user .login-icon {
+            background: linear-gradient(45deg, #1d976c, #93f9b9);
+        }
+
+        .login-card h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.6rem;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: #ff6b6b;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #777;
+            transition: color 0.3s;
+        }
+
+        .toggle-password:hover {
+            color: #ff6b6b;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 20px;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(30deg);
+            transition: all 0.6s;
+        }
+
+        .btn-login:hover::after {
+            left: 120%;
+        }
+
+        .admin .btn-login {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+        }
+
+        .expert .btn-login {
+            background: linear-gradient(45deg, #4ecdc4, #556270);
+        }
+
+        .user .btn-login {
+            background: linear-gradient(45deg, #1d976c, #93f9b9);
+        }
+
+        .btn-login:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .signup-link {
+            margin-top: 16px;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .signup-link a {
+            color: #ff6b6b;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .signup-link a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background: #ff6b6b;
+            transition: width 0.3s;
+        }
+
+        .signup-link a:hover {
+            color: #ff8e53;
+        }
+
+        .signup-link a:hover::after {
+            width: 100%;
+        }
+
+        .password-strength {
+            margin-top: 6px;
+            height: 5px;
+            border-radius: 3px;
+            background: #eee;
+            overflow: hidden;
+        }
+
+        .strength-meter {
+            height: 100%;
+            width: 0;
+            transition: width 0.3s;
+        }
+
+        .strength-text {
+            font-size: 0.75rem;
+            margin-top: 4px;
+            color: #777;
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            min-height: 18px;
+        }
+
+        .success-message {
+            color: #1d976c;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            min-height: 18px;
+        }
+
+        @media (max-width: 900px) {
+            .login-container {
+                flex-direction: column;
+                align-items: center;
+                max-width: 500px;
+            }
+
+            .login-card {
+                max-width: 100%;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Background changer controls */
+        .bg-controls {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .bg-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .bg-dot.active {
+            background: white;
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="background-overlay"></div>
+    <div class="container">
+        <div class="logo">
+            <i class="fas fa-dumbbell"></i>
+            <h1>FitAI</h1>
+        </div>
+
+        <div class="login-container">
+            <!-- Admin Login Card -->
+            <div class="login-card admin">
+                <div class="login-icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h2>Admin Login</h2>
+                <div class="form-group">
+                    <label for="admin-email">Email</label>
+                    <input type="email" id="admin-email" placeholder="admin@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">Password</label>
+                    <div class="password-container">
+                        <input type="password" id="admin-password" placeholder="Enter your password" required>
+                        <span class="toggle-password" onclick="togglePassword('admin-password')">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                    <div class="password-strength">
+                        <div class="strength-meter" id="admin-strength-meter"></div>
+                    </div>
+                    <div class="strength-text" id="admin-strength-text"></div>
+                </div>
+                <button class="btn-login" onclick="login('admin')">Login as Admin</button>
+                <div class="signup-link">
+                    Don't have an account? <a href="signup.html?role=admin">Sign Up</a>
+                </div>
+                <div class="error-message" id="admin-error"></div>
+                <div class="success-message" id="admin-success"></div>
+            </div>
+
+            <!-- Expert Login Card -->
+            <div class="login-card expert">
+                <div class="login-icon">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <h2>Expert Login</h2>
+                <div class="form-group">
+                    <label for="expert-email">Email</label>
+                    <input type="email" id="expert-email" placeholder="expert@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="expert-password">Password</label>
+                    <div class="password-container">
+                        <input type="password" id="expert-password" placeholder="Enter your password" required>
+                        <span class="toggle-password" onclick="togglePassword('expert-password')">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                    <div class="password-strength">
+                        <div class="strength-meter" id="expert-strength-meter"></div>
+                    </div>
+                    <div class="strength-text" id="expert-strength-text"></div>
+                </div>
+                <button class="btn-login" onclick="login('expert')">Login as Expert</button>
+                <div class="signup-link">
+                    Don't have an account? <a href="signup.html?role=expert">Sign Up</a>
+                </div>
+                <div class="error-message" id="expert-error"></div>
+                <div class="success-message" id="expert-success"></div>
+            </div>
+
+            <!-- User Login Card -->
+            <div class="login-card user">
+                <div class="login-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h2>User Login</h2>
+                <div class="form-group">
+                    <label for="user-email">Email</label>
+                    <input type="email" id="user-email" placeholder="user@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="user-password">Password</label>
+                    <div class="password-container">
+                        <input type="password" id="user-password" placeholder="Enter your password" required>
+                        <span class="toggle-password" onclick="togglePassword('user-password')">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                    <div class="password-strength">
+                        <div class="strength-meter" id="user-strength-meter"></div>
+                    </div>
+                    <div class="strength-text" id="user-strength-text"></div>
+                </div>
+                <button class="btn-login" onclick="login('user')">Login as User</button>
+                <div class="signup-link">
+                    Don't have an account? <a href="signup.html?role=user">Sign Up</a>
+                </div>
+                <div class="error-message" id="user-error"></div>
+                <div class="success-message" id="user-success"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Background changer controls -->
+    <div class="bg-controls">
+        <div class="bg-dot active" data-bg="0"></div>
+        <div class="bg-dot" data-bg="1"></div>
+        <div class="bg-dot" data-bg="2"></div>
+        <div class="bg-dot" data-bg="3"></div>
+    </div>
+
+    <script>
+        // Background images array (fitness-themed)
+        const backgrounds = [
+            "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80",
+            "https://images.unsplash.com/photo-1517343985841-f8b2d66e010b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80",
+            "https://images.unsplash.com/photo-1549060279-7e168fce7090?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80",
+            "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80"
+        ];
+
+        let currentBg = 0;
+
+        // Set initial background
+        document.body.style.backgroundImage = `url('${backgrounds[0]}')`;
+
+        // Function to change background
+        function changeBackground(index) {
+            document.body.style.backgroundImage = `url('${backgrounds[index]}')`;
+            currentBg = index;
+
+            // Update active dot
+            document.querySelectorAll('.bg-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+        }
+
+        // Auto background changer
+        setInterval(() => {
+            currentBg = (currentBg + 1) % backgrounds.length;
+            changeBackground(currentBg);
+        }, 5000);
+
+        // Dot click event listeners
+        document.querySelectorAll('.bg-dot').forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                changeBackground(index);
+            });
+        });
+
+        // Firebase configuration - REPLACE WITH YOUR OWN CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyApOX9p61po8QoEy07TFXuYTnmhUfJYgPU",
+            authDomain: "fyp-7221e.firebaseapp.com",
+            projectId: "fyp-7221e",
+            storageBucket: "fyp-7221e.firebasestorage.app",
+            messagingSenderId: "366694776039",
+            appId: "1:366694776039:web:e8aeb0c34c3e27ce1a7642"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Password strength indicators
+        const passwordInputs = ['admin-password', 'expert-password', 'user-password'];
+        passwordInputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', function () {
+                checkPasswordStrength(this.value, id);
+            });
+        });
+
+        // Toggle password visibility
+        function togglePassword(fieldId) {
+            const passwordField = document.getElementById(fieldId);
+            const toggleIcon = passwordField.nextElementSibling.querySelector('i');
+
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        // Check password strength
+        function checkPasswordStrength(password, fieldId) {
+            const meterId = fieldId + '-strength-meter';
+            const textId = fieldId + '-strength-text';
+            const strengthMeter = document.getElementById(meterId);
+            const strengthText = document.getElementById(textId);
+
+            // Reset
+            strengthMeter.style.width = '0%';
+            strengthMeter.style.backgroundColor = '#ddd';
+            strengthText.textContent = '';
+
+            if (!password) return;
+
+            // Calculate strength
+            let strength = 0;
+            if (password.length > 7) strength += 25;
+            if (/[A-Z]/.test(password)) strength += 25;
+            if (/[0-9]/.test(password)) strength += 25;
+            if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+
+            // Update UI
+            strengthMeter.style.width = strength + '%';
+
+            if (strength < 50) {
+                strengthMeter.style.backgroundColor = '#ff6b6b';
+                strengthText.textContent = 'Weak password';
+                strengthText.style.color = '#ff6b6b';
+            } else if (strength < 75) {
+                strengthMeter.style.backgroundColor = '#ffca3a';
+                strengthText.textContent = 'Medium password';
+                strengthText.style.color = '#ffca3a';
+            } else {
+                strengthMeter.style.backgroundColor = '#1d976c';
+                strengthText.textContent = 'Strong password';
+                strengthText.style.color = '#1d976c';
+            }
+        }
+
+        // Login function
+        function login(role) {
+            const emailField = `${role}-email`;
+            const passwordField = `${role}-password`;
+            const errorField = `${role}-error`;
+            const successField = `${role}-success`;
+
+            const email = document.getElementById(emailField).value;
+            const password = document.getElementById(passwordField).value;
+
+            // Clear messages
+            document.getElementById(errorField).textContent = '';
+            document.getElementById(successField).textContent = '';
+
+            // Basic validation
+            if (!email || !password) {
+                document.getElementById(errorField).textContent = 'Please fill in all fields';
+                return;
+            }
+
+
+
+            // Firebase authentication
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Success
+                    document.getElementById(successField).textContent = 'Login successful! Redirecting...';
+
+                    // Store user role in Firestore
+                    db.collection("users").doc(userCredential.user.uid).set({
+                        role: role,
+                        lastLogin: new Date()
+                    }, { merge: true });
+
+                    // Redirect to dashboard based on role
+                    setTimeout(() => {
+                        switch (role) {
+                            case 'admin':
+                                window.location.href = 'admin-dashboard.html';
+                                break;
+                            case 'expert':
+                                window.location.href = 'expert-dashboard.html';
+                                break;
+                            case 'user':
+                                window.location.href = 'user-dashboard.html';
+                                break;
+                        }
+                    }, 1500);
+                })
+                .catch((error) => {
+                    // Handle Errors
+                    let errorMessage = error.message;
+                    if (error.code === 'auth/user-not-found') {
+                        errorMessage = 'No account found with this email';
+                    } else if (error.code === 'auth/wrong-password') {
+                        errorMessage = 'Incorrect password';
+                    }
+                    document.getElementById(errorField).textContent = errorMessage;
+                });
+        }
+
+        // Firebase Authentication State Observer
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // User is signed in
+                db.collection("users").doc(user.uid).get()
+                    .then(doc => {
+                        if (doc.exists) {
+                            const role = doc.data().role;
+                            // Redirect to appropriate dashboard if already logged in
+                            switch (role) {
+                                case 'admin':
+                                    window.location.href = 'admin-dashboard.html';
+                                    break;
+                                case 'expert':
+                                    window.location.href = 'expert-dashboard.html';
+                                    break;
+                                case 'user':
+                                    window.location.href = 'user-dashboard.html';
+                                    break;
+                            }
+                        }
+                    });
+            }
+            else {
+                // User is logged out → redirect to login
+                if (window.location.pathname.includes("dashboard")) {
+                    alert("Please login first");
+                    window.location.href = "login.html";
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

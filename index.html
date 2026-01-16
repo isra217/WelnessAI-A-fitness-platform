@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitAI - Advanced Fitness Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+    <style>
+        :root {
+            --dark-bg: #0f0f12;
+            --darker-bg: #09090c;
+            --card-bg: #1a1a1f;
+            --accent: #00ffaa;
+            --accent-secondary: #ff6b6b;
+            --text-light: #ffffff;
+            --text-gray: #b0b0b0;
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--dark-bg);
+            color: var(--text-light);
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        section {
+            padding: 100px 0;
+            position: relative;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--dark-bg);
+            box-shadow: 0 10px 30px rgba(0, 255, 170, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 255, 170, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-light);
+            border: 2px solid var(--text-light);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .section-title h2 {
+            font-size: 2.8rem;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .section-title h2:after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: var(--accent);
+            margin: 15px auto 0;
+            border-radius: 2px;
+        }
+
+        .section-title p {
+            color: var(--text-gray);
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+        }
+
+        /* Header Styles */
+        header {
+            padding: 20px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+        }
+
+        header.scrolled {
+            background: rgba(15, 15, 18, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            text-decoration: none !important;
+        }
+
+        .logo a {
+            text-decoration: none !important;
+        }
+
+        .logo span {
+            color: var(--accent);
+            margin-right: 5px;
+        }
+
+        .logo i {
+            font-size: 1.5rem;
+            color: var(--accent);
+            margin-right: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 35px;
+        }
+
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+            font-size: 1.05rem;
+        }
+
+        .nav-links a:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .nav-links a:hover:after {
+            width: 100%;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            min-height: 800px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding-top: 0;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .hero-bg.active {
+            opacity: 1;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(15,15,18,0.9) 0%, rgba(15,15,18,0.7) 100%);
+            z-index: -1;
+        }
+
+        .hero-content {
+            max-width: 650px;
+            padding-top: 60px;
+        }
+
+        .hero-content h1 {
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 25px;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .hero-content h1 span {
+            color: var(--accent);
+            display: block;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            color: var(--text-gray);
+            margin-bottom: 40px;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 40px;
+            margin-top: 60px;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hero-scroll {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            transition: var(--transition);
+        }
+
+        .hero-scroll:hover {
+            opacity: 1;
+            transform: translateX(-50%) translateY(5px);
+        }
+
+        .hero-scroll i {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-20px);}
+            60% {transform: translateY(-10px);}
+        }
+
+        /* Features Section */
+        .features {
+            background: var(--darker-bg);
+            padding: 120px 0;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            transform: translateY(50px);
+            opacity: 0;
+        }
+
+        .feature-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-card:hover:before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(0, 255, 170, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            font-size: 2.5rem;
+            color: var(--accent);
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-card p {
+            color: var(--text-gray);
+            margin-bottom: 20px;
+        }
+
+        .feature-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .feature-link:hover {
+            gap: 12px;
+        }
+
+        .video-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: var(--transition);
+            transform: translateY(50px);
+            opacity: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .video-container {
+            position: relative;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+        }
+        
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .video-content {
+            padding: 25px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .video-content h3 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            transition: var(--transition);
+        }
+        
+        .video-card:hover .video-content h3 {
+            color: var(--accent);
+        }
+        
+        .video-content p {
+            color: var(--text-gray);
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            flex-grow: 1;
+        }
+        
+        .video-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            margin-top: auto;
+        }
+        
+        .video-duration {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+        
+        
+        
+        
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .videos-container {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            }
+        }
+        /* Why Choose Us Section */
+        .why-us {
+            background: var(--darker-bg);
+            position: relative;
+            overflow: hidden;
+            padding: 100px 0;
+        }
+
+        .why-us:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.03) 0%, rgba(15, 15, 18, 0.95) 100%);
+            z-index: -1;
+        }
+
+        .why-us-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .why-card {
+            background: rgba(26, 26, 31, 0.7);
+            border-radius: 15px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            transform: scale(0.8);
+            opacity: 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .why-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border-color: var(--accent);
+        }
+
+        .why-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            font-size: 2.5rem;
+            color: var(--accent-secondary);
+            transition: var(--transition);
+        }
+
+        .why-card:hover .why-icon {
+            background: rgba(0, 255, 170, 0.1);
+            color: var(--accent);
+            transform: rotateY(180deg);
+        }
+
+        .why-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .why-card p {
+            color: var(--text-gray);
+            margin-bottom: 20px;
+        }
+
+        /* Demo Section */
+        .demo {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 255, 170, 0.05) 0%, rgba(0, 0, 0, 0.1) 100%);
+            z-index: -1;
+        }
+
+        .demo-container {
+            display: flex;
+            align-items: center;
+            gap: 60px;
+        }
+
+        .demo-content {
+            flex: 1;
+        }
+
+        .demo-image {
+            flex: 1;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            transform: translateX(-50px);
+            opacity: 0;
+        }
+
+        .demo-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: var(--transition);
+        }
+
+        .demo-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 25px;
+            transform: translateX(50px);
+            opacity: 0;
+        }
+
+        .demo-content p {
+            color: var(--text-gray);
+            margin-bottom: 30px;
+            transform: translateX(50px);
+            opacity: 0;
+        }
+
+        .demo-points {
+            margin-bottom: 40px;
+            transform: translateX(50px);
+            opacity: 0;
+        }
+
+        .demo-point {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .point-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: var(--dark-bg);
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .demo-buttons {
+            display: flex;
+            gap: 20px;
+            transform: translateX(50px);
+            opacity: 0;
+        }
+
+        /* Articles Section */
+        .articles {
+            background: var(--darker-bg);
+            padding: 120px 0;
+        }
+
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .article-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: var(--transition);
+            transform: translateY(50px);
+            opacity: 0;
+        }
+
+        .article-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .article-image {
+            height: 220px;
+            overflow: hidden;
+        }
+
+        .article-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .article-card:hover .article-image img {
+            transform: scale(1.05);
+        }
+
+        .article-content {
+            padding: 25px;
+        }
+
+        .article-category {
+            display: inline-block;
+            background: rgba(0, 255, 170, 0.1);
+            color: var(--accent);
+            padding: 5px 15px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .article-content h3 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            transition: var(--transition);
+        }
+
+        .article-card:hover .article-content h3 {
+            color: var(--accent);
+        }
+
+        .article-content p {
+            color: var(--text-gray);
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+
+        .article-author {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .article-author img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+
+        /* CTA Section */
+        .cta {
+            text-align: center;
+            background: linear-gradient(135deg, rgba(0, 255, 170, 0.1) 0%, rgba(15, 15, 18, 0.9) 100%), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            padding: 150px 0;
+            position: relative;
+        }
+
+        .cta-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 15, 18, 0.8);
+            z-index: 1;
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .cta h2 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            transform: translateY(30px);
+            opacity: 0;
+        }
+
+        .cta p {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            transform: translateY(30px);
+            opacity: 0;
+        }
+
+        .cta .btn {
+            transform: translateY(30px);
+            opacity: 0;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-bg);
+            padding: 80px 0 30px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .footer-col h3 {
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .footer-col h3:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: var(--accent);
+        }
+
+        .footer-about p {
+            color: var(--text-gray);
+            margin-bottom: 25px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: var(--text-gray);
+            text-decoration: none;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+            gap: 15px;
+        }
+
+        .footer-links a i {
+            font-size: 0.8rem;
+            color: var(--accent);
+        }
+
+        .footer-contact li {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            color: var(--text-gray);
+        }
+
+        .footer-contact i {
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            transition: var(--transition);
+            font-size: 1.1rem;
+        }
+
+        .social-icon:hover {
+            background: var(--accent);
+            color: var(--dark-bg);
+            transform: translateY(-5px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Animation Classes */
+        .animate {
+            opacity: 1 !important;
+            transform: translate(0, 0) scale(1) !important;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .hero-content h1 {
+                font-size: 3rem;
+            }
+            
+            .demo-container {
+                flex-direction: column;
+            }
+            
+            .demo-image {
+                margin-top: 40px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+            }
+            
+            .hero-stats {
+                flex-wrap: wrap;
+            }
+            
+            .section-title h2 {
+                font-size: 2.2rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero {
+                min-height: 700px;
+            }
+            
+            .hero-content {
+                text-align: center;
+            }
+            
+            .hero-stats {
+                justify-content: center;
+            }
+            
+            .demo-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header id="header">
+        <div class="container header-container">
+            <a href="#" class="logo">
+                <i class="fas fa-dumbbell"></i>
+                <span>Fit</span>AI
+            </a>
+            <ul class="nav-links">
+                <li><a href="#">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#exercise-videos">Workouts</a></li>
+                <li><a href="#why-us">Why Us</a></li>
+                <li><a href="#demo">Demo</a></li>
+                <li><a href="#articles">Articles</a></li>
+            </ul>
+            <div class="header-buttons">
+                <a href="login.html" class="btn btn-secondary">Log In</a>
+                <a href="login.html" class="btn btn-primary">Sign Up</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg" style="background-image: url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80');" id="bg1"></div>
+        <div class="hero-bg" style="background-image: url('https://images.unsplash.com/photo-1549060279-7e168fce7090?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80');" id="bg2"></div>
+        <div class="hero-bg" style="background-image: url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80');" id="bg3"></div>
+        <div class="hero-overlay"></div>
+        <div class="container">
+            <div class="hero-content">
+                <h1>Transform Your Fitness with <span>AI Technology</span></h1>
+                <p>Experience the future of fitness with personalized AI workouts, real-time health tracking, and expert guidance. Achieve your goals faster and smarter.</p>
+                <div class="hero-buttons">
+                    <a href="login.html" class="btn btn-primary">Get Started</a>
+                    <a href="#demo" class="btn btn-secondary">Watch Demo</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">95%</div>
+                        <div class="stat-label">Success Rate</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">50+</div>
+                        <div class="stat-label">Experts</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">10K+</div>
+                        <div class="stat-label">Users</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a href="#features" class="hero-scroll">
+            <i class="fas fa-chevron-down"></i>
+            <span>Explore More</span>
+        </a>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>Powerful Features</h2>
+                <p>Our platform combines cutting-edge technology with expert knowledge to deliver the ultimate fitness experience</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <h3>Real-time Health Monitoring</h3>
+                    <p>Track heart rate, oxygen levels, and body temperature in real-time with our IoT integration for safer workouts.</p>
+                    <a href="#" class="feature-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>AI Exercise Recognition</h3>
+                    <p>Our AI system analyzes your form for 3 key exercises and provides real-time feedback to maximize results.</p>
+                    <a href="#" class="feature-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <h3>Expert Trainers & Dieticians</h3>
+                    <p>Connect with verified fitness professionals, physiotherapists, and nutritionists tailored to your needs.</p>
+                    <a href="#" class="feature-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+ <!-- Exercise Videos Section -->
+<section class="exercise-videos" id="exercise-videos">
+    <div class="container">
+        <div class="section-title">
+            <h2>Exercise Library</h2>
+            <p>Browse our collection of professionally guided workout videos to enhance your fitness journey</p>
+        </div>
+        
+        <div class="features-grid">
+            <!-- Strength Training -->
+            <div class="video-card">
+                <div class="video-container">
+                    <iframe src="https://www.youtube.com/embed/j7rKKpwdXNE" 
+                            title="Full Body Strength Workout" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen></iframe>
+                </div>
+                <div class="video-content">
+                    <h3>Full Body Strength Workout</h3>
+                    <p>Complete strength training session targeting all major muscle groups with dumbbells.</p>
+                    <div class="video-meta">
+                        <div class="video-trainer">FitAI Team</div>
+                        <div class="video-duration">30 min</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Cardio -->
+            <div class="video-card">
+                <div class="video-container">
+                    <iframe src="https://www.youtube.com/embed/s5BJ30AIErM" 
+                            title="Low Impact Cardio Workout" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen></iframe>
+                </div>
+                <div class="video-content">
+                    <h3>Low Impact Cardio Workout</h3>
+                    <p>30-minute joint-friendly cardio session that burns calories without high impact.</p>
+                    <div class="video-meta">
+                        <div class="video-trainer">FitAI Team</div>
+                        <div class="video-duration">30 min</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Yoga -->
+            <div class="video-card">
+                <div class="video-container">
+                    <iframe src="https://www.youtube.com/embed/s2NQhpFGIOg" 
+                            title="Yoga for Beginners" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen></iframe>
+                </div>
+                <div class="video-content">
+                    <h3>Yoga for Beginners</h3>
+                    <p>Gentle 20-minute yoga flow to improve flexibility and reduce stress.</p>
+                    <div class="video-meta">
+                        <div class="video-trainer">FitAI Team</div>
+                        <div class="video-duration">20 min</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+    <!-- Why Choose Us Section -->
+    <section class="why-us" id="why-us">
+        <div class="container">
+            <div class="section-title">
+                <h2>Why Choose FitAI</h2>
+                <p>Discover what makes our AI-powered fitness platform the smart choice for your health journey</p>
+            </div>
+            <div class="why-us-grid">
+                <div class="why-card">
+                    <div class="why-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Intelligent AI Algorithms</h3>
+                    <p>Our proprietary AI learns from millions of workouts to create personalized fitness plans that adapt to your progress.</p>
+                </div>
+                <div class="why-card">
+                    <div class="why-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Privacy First Approach</h3>
+                    <p>Your health data is encrypted and never shared. We prioritize your privacy above all else.</p>
+                </div>
+                <div class="why-card">
+                    <div class="why-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Lightning Fast Results</h3>
+                    <p>Users see 3x faster results compared to traditional methods with our optimized workout plans.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section class="demo" id="demo">
+        <div class="container">
+            <div class="demo-container">
+                <div class="demo-image">
+                    <img src="https://images.unsplash.com/photo-1540497077202-7c8a3999166f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" alt="AI Exercise Demo">
+                </div>
+                <div class="demo-content">
+                    <h2>AI-Powered Exercise Recognition</h2>
+                    <p>Our advanced computer vision technology analyzes your movements in real-time, providing instant feedback to perfect your form and prevent injuries.</p>
+                    <div class="demo-points">
+                        <div class="demo-point">
+                            <div class="point-icon"><i class="fas fa-check"></i></div>
+                            <div class="point-content">Real-time form correction for squats, push-ups, and lunges</div>
+                        </div>
+                        <div class="demo-point">
+                            <div class="point-icon"><i class="fas fa-check"></i></div>
+                            <div class="point-content">Personalized rep counting and set tracking</div>
+                        </div>
+                        <div class="demo-point">
+                            <div class="point-icon"><i class="fas fa-check"></i></div>
+                            <div class="point-content">Performance analytics and progress tracking</div>
+                        </div>
+                        <div class="demo-point">
+                            <div class="point-icon"><i class="fas fa-check"></i></div>
+                            <div class="point-content">Customized workout adjustments based on your form</div>
+                        </div>
+                    </div>
+                    <div class="demo-buttons">
+                        <a href="login.html" class="btn btn-primary">Try It Now</a>
+                        <a href="#" class="btn btn-secondary">View Demo</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Articles Section -->
+    <section class="articles" id="articles">
+        <div class="container">
+            <div class="section-title">
+                <h2>Recent Fitness Articles</h2>
+                <p>Stay updated with the latest fitness trends, research, and expert advice</p>
+            </div>
+            <div class="articles-grid">
+                <div class="article-card">
+                    <div class="article-image">
+                        <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" alt="Fitness Article">
+                    </div>
+                    <div class="article-content">
+                        <div class="article-category">Nutrition</div>
+                        <h3>10 Superfoods to Boost Your Workout Recovery</h3>
+                        <p>Discover the top foods that can help you recover faster and perform better in your next workout session.</p>
+                        <div class="article-meta">
+                            <div class="article-date"><i class="far fa-calendar"></i> June 15, 2023</div>
+                            <div class="article-author">
+                                <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Author">
+                                <span>Sarah Johnson</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="article-card">
+                    <div class="article-image">
+                        <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" alt="Fitness Article">
+                    </div>
+                    <div class="article-content">
+                        <div class="article-category">Training</div>
+                        <h3>The Science of Muscle Growth: What Really Works</h3>
+                        <p>Learn about the latest research on muscle hypertrophy and how to optimize your training for maximum gains.</p>
+                        <div class="article-meta">
+                            <div class="article-date"><i class="far fa-calendar"></i> June 10, 2023</div>
+                            <div class="article-author">
+                                <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="Author">
+                                <span>Michael Roberts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="article-card">
+                    <div class="article-image">
+                        <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" alt="Fitness Article">
+                    </div>
+                    <div class="article-content">
+                        <div class="article-category">Technology</div>
+                        <h3>How AI is Revolutionizing Personal Fitness</h3>
+                        <p>Explore how artificial intelligence is changing the way we approach personal training and health monitoring.</p>
+                        <div class="article-meta">
+                            <div class="article-date"><i class="far fa-calendar"></i> June 5, 2023</div>
+                            <div class="article-author">
+                                <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Author">
+                                <span>Jennifer Lee</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="cta-overlay"></div>
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Transform Your Fitness Journey?</h2>
+                <p>Join thousands of users who have achieved their fitness goals with our AI-powered platform. Start your transformation today!</p>
+                <a href="login.html" class="btn btn-primary">Get Started Now</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col footer-about">
+                    <h3>About FitAI</h3>
+                    <p>FitAI combines artificial intelligence with expert knowledge to deliver personalized fitness experiences that help you achieve your goals faster and more effectively.</p>
+                    <div class="footer-social">
+                        <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Home</a></li>
+                        <li><a href="#features"><i class="fas fa-chevron-right"></i> Features</a></li>
+                        <li><a href="#exercise-videos"><i class="fas fa-chevron-right"></i> Workouts</a></li>
+                        <li><a href="#why-us"><i class="fas fa-chevron-right"></i> Why Us</a></li>
+                        <li><a href="#articles"><i class="fas fa-chevron-right"></i> Articles</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Our Services</h3>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> AI Workouts</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Diet Planning</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Expert Training</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Health Monitoring</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Progress Tracking</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Contact Us</h3>
+                    <ul class="footer-contact">
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Fitness Street, Health City</li>
+                        <li><i class="fas fa-phone"></i> +1 (555) 123-4567</li>
+                        <li><i class="fas fa-envelope"></i> info@fitaipro.com</li>
+                        <li><i class="fas fa-clock"></i> Mon-Fri: 8AM-10PM, Sat-Sun: 9AM-8PM</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 FitAI. All rights reserved. | FYP Project by Isra</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Background image carousel
+        let currentBg = 1;
+        const backgrounds = document.querySelectorAll('.hero-bg');
+        backgrounds[0].classList.add('active');
+        
+        function changeBackground() {
+            backgrounds.forEach(bg => bg.classList.remove('active'));
+            backgrounds[currentBg].classList.add('active');
+            currentBg = (currentBg + 1) % backgrounds.length;
+        }
+        
+        setInterval(changeBackground, 5000);
+        
+        // Header scroll effect
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('header');
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+        
+        // Animation on scroll
+        function animateOnScroll() {
+            const elements = document.querySelectorAll('.feature-card, .demo-image, .demo-content h2, .demo-content p, .demo-points, .demo-buttons, .article-card, .cta h2, .cta p, .cta .btn, .why-card, .video-card');
+            
+            elements.forEach(element => {
+                const position = element.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
+                
+                if (position.top < windowHeight * 0.85) {
+                    element.classList.add('animate');
+                }
+            });
+        }
+        
+        // Initial check on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate hero content
+            const heroElements = document.querySelectorAll('.hero-content h1, .hero-content p, .hero-buttons, .hero-stats');
+            setTimeout(() => {
+                heroElements.forEach((el, index) => {
+                    setTimeout(() => {
+                        el.classList.add('animate');
+                    }, 300 * index);
+                });
+            }, 500);
+            
+            // Set up scroll animation
+            animateOnScroll();
+            window.addEventListener('scroll', animateOnScroll);
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Add GSAP animations for more advanced effects
+        gsap.registerPlugin(ScrollTrigger);
+        
+        // Animate why cards with GSAP
+        gsap.utils.toArray('.why-card').forEach((card, i) => {
+            gsap.fromTo(card, 
+                { opacity: 0, scale: 0.8, y: 50 },
+                {
+                    opacity: 1,
+                    scale: 1,
+                    y: 0,
+                    duration: 0.8,
+                    ease: "power2.out",
+                    scrollTrigger: {
+                        trigger: card,
+                        start: "top 90%",
+                        toggleActions: "play none none none"
+                    },
+                    delay: i * 0.2
+                }
+            );
+        });
+        
+        // Animate hero scroll arrow
+        gsap.to('.hero-scroll', {
+            y: 10,
+            repeat: -1,
+            yoyo: true,
+            duration: 1,
+            ease: "power1.inOut"
+        });
+        
+        // Video play functionality
+        document.querySelectorAll('.play-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const videoCard = this.closest('.video-card');
+                const videoTitle = videoCard.querySelector('h3').textContent;
+                alert(`Playing: ${videoTitle}\n\nThis would open the video player in the actual implementation.`);
+            });
+        });
+        // Video filtering functionality
+        document.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                const category = this.dataset.category;
+                const videoCards = document.querySelectorAll('.video-card');
+                
+                // Show/hide videos based on category
+                videoCards.forEach(card => {
+                    if (category === 'all' || card.dataset.category === category) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        // Initialize GSAP animations for the new video cards
+        gsap.utils.toArray('.video-card').forEach((card, i) => {
+            gsap.fromTo(card, 
+                { opacity: 0, y: 50 },
+                {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.8,
+                    ease: "power2.out",
+                    scrollTrigger: {
+                        trigger: card,
+                        start: "top 90%",
+                        toggleActions: "play none none none"
+                    },
+                    delay: i * 0.1
+                }
+            );
+        });
+    </script>
+</body>
+</html>
