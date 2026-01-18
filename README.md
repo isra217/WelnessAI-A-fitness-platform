@@ -145,7 +145,7 @@ WellnessAI helps:
 * Users receive AI + human guidance together
 
 ---
-##  Live Link: 
+##  Live Link: https://isra217.github.io/WelnessAI-A-fitness-platform/
 
 ##  Future Improvements
 
