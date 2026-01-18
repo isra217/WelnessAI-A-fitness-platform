@@ -873,127 +873,10 @@
       cursor: pointer;
     }
 
-    /* Responsive */
-    @media (max-width: 992px) {
-      .sidebar {
-        width: 84px;
-        overflow: hidden;
-      }
 
-      .logo h1,
-      .user-info,
-      .menu-item span {
-        display: none;
-      }
 
-      .logo {
-        justify-content: center;
-      }
 
-      .menu-item {
-        justify-content: center;
-      }
 
-      .menu-item i {
-        margin-right: 0;
-        font-size: 20px;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        flex-direction: column;
-      }
-
-      .sidebar {
-        width: 100%;
-        height: auto;
-        padding: 10px;
-      }
-
-      .logo {
-        padding: 10px;
-      }
-
-      .user-info {
-        display: none;
-      }
-
-      .menu {
-        display: flex;
-        overflow-x: auto;
-        padding: 8px 0;
-      }
-
-      .menu-item {
-        flex-direction: column;
-        padding: 10px;
-        margin: 0 6px;
-      }
-
-      .menu-item i {
-        margin-bottom: 4px;
-      }
-
-      .main-content {
-        padding: 16px;
-      }
-
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-      }
-
-      .row {
-        flex-direction: column;
-      }
-
-      .filter-options {
-        flex-direction: column;
-      }
-
-      .notification-dropdown {
-        width: 100%;
-        right: 0;
-        left: 0;
-      }
-    }
-
-    /* Collapsible sidebar styles */
-    .sidebar-toggle {
-      display: none;
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      z-index: 1000;
-      background: var(--accent-1);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      cursor: pointer;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    @media (max-width: 992px) {
-      .sidebar-toggle {
-        display: flex;
-      }
-
-      .sidebar {
-        position: fixed;
-        left: -280px;
-        transition: left 0.3s ease;
-      }
-
-      .sidebar.open {
-        left: 0;
-      }
-    }
 
     /* Workout Plan Table Styles */
     .workout-table-container {
@@ -1085,42 +968,63 @@
       }
     }
 
-    /* Health stats simulation */
-    .health-simulation {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
-    }
-
-    .health-metric {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      text-align: center;
-      box-shadow: var(--card-shadow);
-    }
-
-    .health-value {
+    .sidebar-toggle {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1300;
+      position: absolute;
+      border: none;
       font-size: 24px;
-      font-weight: bold;
-      color: var(--accent-1);
-      margin: 10px 0;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     }
 
-    .health-label {
-      font-size: 14px;
-      color: var(--gray);
+    @media (max-width: 768px) {
+
+      .sidebar {
+        left: -280px;
+        z-index: 1200;
+      }
+
+      .sidebar .logo {
+        padding-top: 50px;
+      }
+
+      .sidebar.mobile-active {
+        left: 0;
+        padding-left: 0;
+      }
+
+      .sidebar-toggle {
+        display: block;
+      }
+
+      .main-content {
+        margin-left: 0 !important;
+        padding-top: 70px;
+        width: 100%;
+      }
+
+      body.mobile-sidebar-open::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 1050;
+      }
+
     }
   </style>
 </head>
 
 <body>
-  <button class="sidebar-toggle" id="sidebarToggle">
-    <i class="fas fa-bars"></i>
-  </button>
 
   <div class="container">
+    <button id="mobileToggle" class="sidebar-toggle">☰</button>
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
       <div class="logo">
@@ -1136,7 +1040,6 @@
       <div class="menu">
         <div class="menu-item active" data-section="home"><i class="fas fa-home"></i><span>Home</span></div>
         <div class="menu-item" data-section="profile"><i class="fas fa-user"></i><span>Profile</span></div>
-        <div class="menu-item" data-section="health"><i class="fas fa-heart"></i><span>Health & Stats</span></div>
         <div class="menu-item" data-section="workout"><i class="fas fa-dumbbell"></i><span>Workout Plan</span></div>
         <div class="menu-item" data-section="diet"><i class="fas fa-utensils"></i><span>Diet Plan</span></div>
         <div class="menu-item" data-section="excercise"><i class="fas fa-robot"></i><span>AI Excercise</span></div>
@@ -1293,69 +1196,6 @@
         </div>
       </div>
 
-      <!-- Health & Stats -->
-      <div class="content-section" id="health-section">
-        <div class="stats">
-          <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-weight-scale"></i></div>
-            <div class="stat-info">
-              <h3 id="statWeight">– kg</h3>
-              <p>Current Weight</p>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-ruler-vertical"></i></div>
-            <div class="stat-info">
-              <h3 id="statHeight">– cm</h3>
-              <p>Height</p>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-calculator"></i></div>
-            <div class="stat-info">
-              <h3 id="statBMI">–</h3>
-              <p>BMI</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <h3>Health Progress</h3>
-          </div>
-          <div class="card-body">
-            <p>Your health statistics will be displayed here as you track your progress.</p>
-
-            <div class="health-simulation">
-              <div class="health-metric">
-                <i class="fas fa-heartbeat" style="font-size: 24px; color: var(--accent-1);"></i>
-                <div class="health-value" id="heartRate">72</div>
-                <div class="health-label">Heart Rate (bpm)</div>
-              </div>
-              <div class="health-metric">
-                <i class="fas fa-walking" style="font-size: 24px; color: var(--accent-2);"></i>
-                <div class="health-value" id="steps">8,542</div>
-                <div class="health-label">Steps Today</div>
-              </div>
-              <div class="health-metric">
-                <i class="fas fa-fire" style="font-size: 24px; color: var(--danger);"></i>
-                <div class="health-value" id="calories">324</div>
-                <div class="health-label">Calories Burned</div>
-              </div>
-              <div class="health-metric">
-                <i class="fas fa-bed" style="font-size: 24px; color: var(--sidebar-primary);"></i>
-                <div class="health-value" id="sleep">7.2</div>
-                <div class="health-label">Sleep (hours)</div>
-              </div>
-            </div>
-
-            <div
-              style="height: 200px; background: #f5f5f5; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-top: 20px;">
-              <p style="color: #888;">(Health progress chart will appear here)</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <!-- Workout Plan -->
       <div class="content-section" id="workout-section">
@@ -1769,10 +1609,7 @@
     });
 
 
-    // Toggle sidebar on mobile
-    sidebarToggle.addEventListener('click', () => {
-      sidebar.classList.toggle('open');
-    });
+
 
     // Close modals
     closeModalButtons.forEach(button => {
@@ -1822,6 +1659,23 @@
             sidebarAvatar.style.backgroundImage = `url(${data.profilePic})`;
             sidebarAvatar.innerHTML = ""; // remove default icon
           }
+          const toggle = document.getElementById("mobileToggle");
+          const sidebar = document.querySelector(".sidebar");
+
+          toggle.addEventListener("click", () => {
+            sidebar.classList.toggle("mobile-active");
+            document.body.classList.toggle("mobile-sidebar-open");
+          });
+
+          // close sidebar when menu clicked
+          document.querySelectorAll(".menu-item").forEach(item => {
+            item.addEventListener("click", () => {
+              if (window.innerWidth <= 768) {
+                sidebar.classList.remove("mobile-active");
+                document.body.classList.remove("mobile-sidebar-open");
+              }
+            });
+          });
 
           // Prefill profile form with saved data
           document.getElementById('fullName').value = data.name || "";

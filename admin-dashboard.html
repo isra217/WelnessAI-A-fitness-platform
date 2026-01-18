@@ -50,8 +50,8 @@
         }
 
         .sidebar {
-            position:fixed;
-            height:100vh;
+            position: fixed;
+            height: 100vh;
             width: 280px;
             background: linear-gradient(180deg, var(--sidebar-primary), var(--sidebar-secondary));
             color: #fff;
@@ -89,6 +89,23 @@
             height: 100px;
             margin: 0 auto 15px;
         }
+
+       
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1300;
+            position:absolute;
+            border: none;
+            font-size: 24px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
 
         .profile-picture {
             width: 100%;
@@ -164,7 +181,7 @@
 
         .main-content {
             flex: 1;
-            margin-left:280px;
+            margin-left: 280px;
             padding: 25px;
             overflow-y: auto
         }
@@ -761,6 +778,122 @@
             color: var(--gray);
         }
 
+        .sidebar {
+            pointer-events: auto;
+        }
+
+        body.mobile-sidebar-open::before {
+            pointer-events: auto;
+        }
+
+
+        @media (max-width: 768px) {
+
+            .sidebar {
+                left: -280px;
+                z-index: 1200;
+            }
+            .sidebar .logo {
+                padding-top: 50px;
+            }
+
+            .sidebar.mobile-active {
+                left: 0;
+                padding-left: 0;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                 padding-top: 70px;
+                width: 100%;
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+
+            body.mobile-sidebar-open::before {
+                content: "";
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.4);
+                z-index: 1050;
+            }
+        }
+
+
+        /* ---------- Responsive grids and cards ---------- */
+        @media (max-width: 768px) {
+            .stats {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .expert-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .expert-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            .card,
+            .stat-card,
+            .settings-card,
+            .expert-card {
+                padding: 15px;
+            }
+
+            .header h2 {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            .table,
+            .complaints-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .table th,
+            .table td,
+            .complaints-table th,
+            .complaints-table td {
+                font-size: 13px;
+                padding: 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .table-controls {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .filter-select {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
+
+
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -795,11 +928,19 @@
 
 <body>
     <div class="container">
+        <!-- TOGGLE BUTTON GOES HERE -->
+        <button id="mobileToggle" class="sidebar-toggle">
+            ☰
+        </button>
+
         <!-- Sidebar -->
         <div class="sidebar">
+
             <div class="logo">
+
                 <i class="fas fa-user-shield"></i>
                 <h1>Admin Panel</h1>
+
             </div>
             <div class="user-info">
                 <div class="profile-picture-container">
@@ -1156,7 +1297,7 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        
+
         // State
         let currentUserId = null;
         let experts = [];
@@ -1172,12 +1313,41 @@
             loadExperts();
         });
 
+        const mobileToggle = document.getElementById("mobileToggle");
+        const sidebar = document.querySelector(".sidebar");
+        const body = document.body;
+
+        mobileToggle.addEventListener("click", (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle("mobile-active");
+            body.classList.toggle("mobile-sidebar-open");
+        });
+
+        sidebar.addEventListener("click", () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove("mobile-active");
+                body.classList.remove("mobile-sidebar-open");
+            }
+        });
+
+        body.addEventListener("click", (e) => {
+            if (
+                body.classList.contains("mobile-sidebar-open") &&
+                !sidebar.contains(e.target) &&
+                !mobileToggle.contains(e.target)
+            ) {
+                sidebar.classList.remove("mobile-active");
+                body.classList.remove("mobile-sidebar-open");
+            }
+        });
+
+
         // --- UI refs ---
         const menuItems = document.querySelectorAll('.menu-item[data-section]');
         const contentSections = document.querySelectorAll('.content-section');
         const mainHeader = document.getElementById('mainHeader');
         const expertGrid = document.getElementById('expertGrid');
-        const statusFilter= document.getElementById('statusFilter');
+        const statusFilter = document.getElementById('statusFilter');
         const modal = document.getElementById('expertModal');
 
         // Menu item click handling
@@ -1201,6 +1371,10 @@
                 });
             });
         });
+
+
+
+
 
         // Function to show a specific section
         function showSection(section) {
